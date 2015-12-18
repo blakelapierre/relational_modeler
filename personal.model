@@ -1,0 +1,18 @@
+personal {
+  inventory {
+    item {name, description}
+      -> item_type
+
+    physical_item {location, dimension}
+      -> item
+
+    stock {price}
+      -> physical_item
+
+    item_type {name} ['generic', 'food', 'tool']
+  }
+
+  skills {
+    skill {name}
+  }
+}
