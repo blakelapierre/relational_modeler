@@ -19,7 +19,7 @@ RM {
   Type = ValueList
 
   ListOfValues = ValueComma* Value -- many
-             | Value
+               | Value
 
   ValueComma = Value  ","
   Value = "'" value_name "'"
