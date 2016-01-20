@@ -9,7 +9,7 @@ personal {
     stock {price}
       -> physical_item
 
-    item_type {name} ['generic', 'food', 'tool']
+    item_type {name ['generic', 'food', 'tool']}
   }
 
   skills {

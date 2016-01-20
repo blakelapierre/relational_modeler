@@ -1,0 +1,54 @@
+RM {
+  Model = model_name open Database* close
+
+  Database = database_name open DatabaseDescription close
+
+  DatabaseDescription = Table*
+
+  Table = table_name AttributeList? Dependency*
+
+  AttributeList = open attribute_list close
+  EnumList = open_square value_list close_square
+
+  attribute_list = attribute_comma* attribute -- many
+                 | attribute
+
+  attribute_comma = attribute ","
+  attribute = ws* attribute_name ws* (open_square value_list close_square)?
+
+  value_list = value_comma* value -- many
+             | value
+
+  value_comma = value ws* "," ws*
+  value = "'" value_name "'"
+
+
+  Dependency = dependency_glyph table_name
+
+  ws = "\t"
+     | "\x0B"    -- verticalTab
+     | "\x0C"    -- formFeed
+     | " "
+     | "\u00A0"  -- noBreakSpace
+     | "\uFEFF"  -- byteOrderMark
+     | unicodeSpaceSeparator
+  unicodeSpaceSeparator = "\u2000".."\u200B" | "\u3000"
+
+  open = ws* "{" ws*
+  close = ws* "}" ws*
+
+  open_square = ws* "[" ws*
+  close_square = ws* "]" ws*
+
+  name = first_character additional_character*
+  first_character = letter | "_"
+  additional_character = first_character | alnum
+
+  model_name = name
+  database_name = name
+  table_name = name
+  attribute_name = name
+  value_name = name
+
+  dependency_glyph = ws* "->" ws*
+}
