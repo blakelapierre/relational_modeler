@@ -7,38 +7,28 @@ RM {
 
   Table = table_name AttributeList? Dependency*
 
-  AttributeList = open attribute_list close
-  EnumList = open_square value_list close_square
+  AttributeList = open ListOfAttributes close
+  ValueList = open_square ListOfValues close_square
 
-  attribute_list = attribute_comma* attribute -- many
-                 | attribute
+  ListOfAttributes = AttributeComma* Attribute -- many
+                   | Attribute
 
-  attribute_comma = attribute ","
-  attribute = ws* attribute_name ws* (open_square value_list close_square)?
+  AttributeComma = Attribute ","
+  Attribute =  attribute_name  (open_square ListOfValues close_square)?
 
-  value_list = value_comma* value -- many
-             | value
+  ListOfValues = ValueComma* Value -- many
+             | Value
 
-  value_comma = value ws* "," ws*
-  value = "'" value_name "'"
-
+  ValueComma = Value  ","
+  Value = "'" value_name "'"
 
   Dependency = dependency_glyph table_name
 
-  ws = "\t"
-     | "\x0B"    -- verticalTab
-     | "\x0C"    -- formFeed
-     | " "
-     | "\u00A0"  -- noBreakSpace
-     | "\uFEFF"  -- byteOrderMark
-     | unicodeSpaceSeparator
-  unicodeSpaceSeparator = "\u2000".."\u200B" | "\u3000"
+  open = "{"
+  close = "}"
 
-  open = ws* "{" ws*
-  close = ws* "}" ws*
-
-  open_square = ws* "[" ws*
-  close_square = ws* "]" ws*
+  open_square =  "["
+  close_square =  "]"
 
   name = first_character additional_character*
   first_character = letter | "_"
@@ -50,5 +40,5 @@ RM {
   attribute_name = name
   value_name = name
 
-  dependency_glyph = ws* "->" ws*
+  dependency_glyph =  "->"
 }

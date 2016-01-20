@@ -1,13 +1,13 @@
 personal {
   inventory {
-    item {name, description}
-      -> item_type
+    stock {price}
+      -> physical_item
 
     physical_item {location, dimension}
       -> item
 
-    stock {price}
-      -> physical_item
+    item {name, description}
+      -> item_type
 
     item_type {name ['generic', 'food', 'tool']}
   }
