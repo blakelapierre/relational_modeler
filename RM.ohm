@@ -14,7 +14,9 @@ RM {
                    | Attribute
 
   AttributeComma = Attribute ","
-  Attribute = attribute_name ValueList?
+  Attribute = attribute_name Type?
+
+  Type = ValueList
 
   ListOfValues = ValueComma* Value -- many
              | Value
