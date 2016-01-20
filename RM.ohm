@@ -21,7 +21,7 @@ RM {
   ListOfValues = ValueComma* Value -- many
                | Value
 
-  ValueComma = Value  ","
+  ValueComma = Value ","
   Value = "'" value_name "'"
 
   Dependency = dependency_glyph table_name
@@ -29,7 +29,7 @@ RM {
   open = "{"
   close = "}"
 
-  open_square =  "["
+  open_square = "["
   close_square =  "]"
 
   name = first_character additional_character*
@@ -42,5 +42,5 @@ RM {
   attribute_name = name
   value_name = name
 
-  dependency_glyph =  "->"
+  dependency_glyph = "->"
 }
