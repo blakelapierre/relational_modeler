@@ -7,21 +7,13 @@ RM {
 
   Table = table_name AttributeList? Dependency*
 
-  AttributeList = open ListOfAttributes close
-  ValueList = open_square ListOfValues close_square
+  AttributeList = open ListOf<Attribute, ","> close
+  ValueList = open_square ListOf<Value, ","> close_square
 
-  ListOfAttributes = AttributeComma* Attribute -- many
-                   | Attribute
-
-  AttributeComma = Attribute ","
   Attribute = attribute_name Type?
 
   Type = ValueList
 
-  ListOfValues = ValueComma* Value -- many
-               | Value
-
-  ValueComma = Value ","
   Value = "'" value_name "'"
 
   Dependency = dependency_glyph table_name
