@@ -1,22 +1,20 @@
 RM {
-  Model = model_name open Database* close
+  Model = name open Database* close
 
-  Database = database_name open DatabaseDescription close
+  Database = name open Table* close
 
-  DatabaseDescription = Table*
-
-  Table = table_name AttributeList? Dependency*
+  Table = name AttributeList? Dependency*
 
   AttributeList = open ListOf<Attribute, ","> close
   ValueList = open_square ListOf<Value, ","> close_square
 
-  Attribute = attribute_name Type?
+  Attribute = name Type?
 
   Type = ValueList
 
-  Value = "'" value_name "'"
+  Value = "'" name "'"
 
-  Dependency = dependency_glyph table_name
+  Dependency = dependency_glyph name
 
   open = "{"
   close = "}"
@@ -27,12 +25,6 @@ RM {
   name = first_character additional_character*
   first_character = letter | "_"
   additional_character = first_character | alnum
-
-  model_name = name
-  database_name = name
-  table_name = name
-  attribute_name = name
-  value_name = name
 
   dependency_glyph = "->"
 }
