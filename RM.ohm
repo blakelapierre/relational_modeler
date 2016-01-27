@@ -6,12 +6,11 @@ RM {
   Table = name AttributeList? Dependency*
 
   AttributeList = open ListOf<Attribute, ","> close
-  ValueList = open_square ListOf<Value, ","> close_square
-
   Attribute = name Type?
 
   Type = ValueList
 
+  ValueList = open_square ListOf<Value, ","> close_square
   Value = "'" name "'"
 
   Dependency = dependency_glyph name
