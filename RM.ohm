@@ -1,25 +1,37 @@
 RM {
-  Model = name open Database* close
-
-  Database = name open Table* close
+  Model = name Contained<Database*>
+  Database = name Contained<Table*>
 
   Table = name AttributeList? Dependency*
 
-  AttributeList = open ListOf<Attribute, ","> close
+  AttributeList = Contained<ListOf<Attribute, ",">>
   Attribute = name Type?
 
   Type = ValueList
+       | ValueSet
 
-  ValueList = open_square ListOf<Value, ","> close_square
-  Value = "'" name "'"
+  ValueList = SquareContained<ListOf<Value, ",">>
+  ValueSet = Contained<ListOf<Value, ",">>
+  Value = number | "'" name "'"
 
   Dependency = dependency_glyph name
+
+---------
+  Contained<element> = open element close
+  SquareContained<element> = open_square element close_square
 
   open = "{"
   close = "}"
 
   open_square = "["
   close_square =  "]"
+---------
+---------
+  Contained<element> = Contained<"{", element, "}">
+  SquareContained<element> = Contained<"["", element, "]">
+
+  Contained<open, element, close> = open element close
+---------
 
   name = first_character additional_character*
   first_character = letter | "_"
