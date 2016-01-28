@@ -28,7 +28,7 @@ RM {
 ---------
 ---------
   Contained<element> = Contained<"{", element, "}">
-  SquareContained<element> = Contained<"["", element, "]">
+  SquareContained<element> = Contained<"[", element, "]">
 
   Contained<open, element, close> = open element close
 ---------
