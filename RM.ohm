@@ -15,7 +15,7 @@ RM {
   Value = digit+
         | IContained<"'", name, "'">
 
-  Dependency = dependency_glyph name
+  Dependency = arity? dependency_glyph arity? name
 
   Contained<element> = IContained<"{", element, "}">
   SquareContained<element> = IContained<"[", element, "]">
@@ -26,5 +26,6 @@ RM {
   first_character = letter | "_"
   additional_character = first_character | alnum
 
+  arity = "*" | digit+
   dependency_glyph = "->"
 }
