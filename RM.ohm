@@ -12,26 +12,15 @@ RM {
 
   ValueList = SquareContained<ListOf<Value, ",">>
   ValueSet = Contained<ListOf<Value, ",">>
-  Value = number | "'" name "'"
+  Value = digit+
+        | IContained<"'", name, "'">
 
   Dependency = dependency_glyph name
 
----------
-  Contained<element> = open element close
-  SquareContained<element> = open_square element close_square
+  Contained<element> = IContained<"{", element, "}">
+  SquareContained<element> = IContained<"[", element, "]">
 
-  open = "{"
-  close = "}"
-
-  open_square = "["
-  close_square =  "]"
----------
----------
-  Contained<element> = Contained<"{", element, "}">
-  SquareContained<element> = Contained<"[", element, "]">
-
-  Contained<open, element, close> = open element close
----------
+  IContained<open, element, close> = open element close
 
   name = first_character additional_character*
   first_character = letter | "_"
