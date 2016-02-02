@@ -9,7 +9,7 @@ personal {
     item {name, description}
       -> item_type
 
-    item_type {name ['generic', 'food', 'tool']}
+    item_type {name {'generic', 'food', 'tool'}}
   }
 
   skills {

@@ -8,55 +8,34 @@ export default {
   },
 
   Model (name, databases) {
-    return {
-      name: name.toObject(),
-      databases: databases.toObject()
-    };
+    return join({name, databases});
   },
 
   Database (name, tables) {
-    return {
-      name: name.toObject(),
-      tables: tables.toObject()
-    };
+    return join({name, tables});
   },
 
   Table (name, attributes, dependencies) {
-    return {
-      name: name.toObject(),
-      attributes: attributes.toObject(),
-      dependencies: dependencies.toObject()
-    };
+    return join({name, attributes, dependencies});
   },
 
   Attribute (name, type) {
-    console.log('attribute');
-    return {
-      name: name.toObject(),
-      type: type.toObject()
-    };
+    return join({name, type});
   },
 
   Type (type) {
     return type.toObject();
   },
 
-  ValueList (valueList) {
-    return {
-      type: 'List',
-      values: valueList.toObject()
-    };
+  ValueList (values) {
+    return join({type: 'List', values});
   },
 
-  ValueSet (valueSet) {
-    return {
-      type: 'Set',
-      values: valueSet.toObject()
-    };
+  ValueSet (values) {
+    return join({type: 'Set', values});
   },
 
   Dependency (glyph, name) {
-    console.log('dependency');
     return name.toObject();
   },
 
@@ -64,3 +43,8 @@ export default {
     return this.interval.contents;
   }
 };
+
+function join(obj) {
+  for (let key in obj) if (obj[key].toObject) obj[key] = obj[key].toObject();
+  return obj;
+}
