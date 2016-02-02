@@ -1,63 +1,63 @@
 export default {
   ListOf_some (element, separator, rest) {
-    return [element.toJSON()].concat(rest.toJSON());
+    return [element.toObject()].concat(rest.toObject());
   },
 
   IContained (open, element, close) {
-    return element.toJSON();
+    return element.toObject();
   },
 
   Model (name, databases) {
     return {
-      name: name.toJSON(),
-      databases: databases.toJSON()
+      name: name.toObject(),
+      databases: databases.toObject()
     };
   },
 
   Database (name, tables) {
     return {
-      name: name.toJSON(),
-      tables: tables.toJSON()
+      name: name.toObject(),
+      tables: tables.toObject()
     };
   },
 
   Table (name, attributes, dependencies) {
     return {
-      name: name.toJSON(),
-      attributes: attributes.toJSON(),
-      dependencies: dependencies.toJSON()
+      name: name.toObject(),
+      attributes: attributes.toObject(),
+      dependencies: dependencies.toObject()
     };
   },
 
   Attribute (name, type) {
     console.log('attribute');
     return {
-      name: name.toJSON(),
-      type: type.toJSON()
+      name: name.toObject(),
+      type: type.toObject()
     };
   },
 
   Type (type) {
-    return type.toJSON();
+    return type.toObject();
   },
 
   ValueList (valueList) {
     return {
       type: 'List',
-      values: valueList.toJSON()
+      values: valueList.toObject()
     };
   },
 
   ValueSet (valueSet) {
     return {
       type: 'Set',
-      values: valueSet.toJSON()
+      values: valueSet.toObject()
     };
   },
 
   Dependency (glyph, name) {
     console.log('dependency');
-    return name.toJSON();
+    return name.toObject();
   },
 
   name (first_character, additional_characters) {
