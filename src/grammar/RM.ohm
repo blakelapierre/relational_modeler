@@ -1,21 +1,31 @@
 RM {
-  Model = name Contained<Database*>
-  Database = name Contained<Table*>
+  Model = name Contained<Schema*>
+  Schema = name Contained<Table*>
 
   Table = name AttributeList? Dependency*
 
   AttributeList = Contained<ListOf<Attribute, ",">>
   Attribute = name Type?
 
-  Type = ValueList
-       | ValueSet
+  Type = List
+       | Set
+       | SQLType
 
-  ValueList = SquareContained<ListOf<Value, ",">>
-  ValueSet = Contained<ListOf<Value, ",">>
+  List = SquareContained<ListOf<Value, ",">>
+  Set = Contained<ListOf<Value, ",">>
   Value = digit+
         | IContained<"'", name, "'">
 
-  Dependency = dependency_glyph name
+  SQLType = "bigint"
+          | "text"
+
+  Dependency = dependency_glyph Reference
+
+  Reference = SchemaTableName
+            | TableName
+
+  SchemaTableName = name "." name
+  TableName = name
 
   Contained<element> = IContained<"{", element, "}">
   SquareContained<element> = IContained<"[", element, "]">

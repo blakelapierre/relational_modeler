@@ -1,24 +1,236 @@
+require('../traceur-runtime');
+
 import fs from 'fs';
 import util from 'util';
 
 import ohm from 'ohm-js';
+import _ from 'lazy.js';
 
-import toObject from '../grammar/RM.toObject.semantics';
-// import toObject from '../RM.semantics.toObject';
+const {grammar, semantics} = loadGrammarWithSemantics('RM', ['toObject']);
 
-console.log(toObject);
-console.log(process.cwd());
+const result = run('./tests/samples/personal.model', grammar, semantics, 'toObject');
 
-const grammar = ohm.grammar(fs.readFileSync('./grammar/RM.ohm'));
+log(util.inspect(result, false, null));
 
-const tpsql = grammar.semantics().addOperation('toObject', toObject);
+log(toPostgreSQL(orderDependencies(result)).join(''));
 
-const match = grammar.match(fs.readFileSync('./tests/samples/personal.model').toString());
-if (match.succeeded()) {
-  const result = tpsql(match).toObject();
-  console.log(util.inspect(result, false, null));
+function loadGrammarWithSemantics(grammarName, semanticNames = []) {
+  const grammar = ohm.grammar(fs.readFileSync(`./grammar/${grammarName}.ohm`)),
+        semantics = grammar.semantics();
+
+  semanticNames.forEach(addSemanticName);
+
+  return {grammar, semantics};
+
+  function addSemanticName(name) {
+    semantics.addOperation(name, require(`../grammar/${grammarName}.${name}.semantics`).default);
+  }
 }
-else {
-  console.error(match.message);
+
+function run(modelFile, grammar, semantics, operation) {
+  const match = grammar.match(fs.readFileSync(modelFile).toString());
+  if (match.succeeded()) {
+    const result = semantics(match).toObject();
+    return result;
+  }
+  else {
+    console.error(match.message);
+  }
 }
-// grammar.semantics().addOperation('toObject', toObject);
+
+function toPostgreSQL(model) {
+  return _(model.schemas)
+    .map(generateSchema)
+    .flatten()
+    .toArray();
+
+  function generateSchema(schema) {
+    return _()
+            .concat([`CREATE SCHEMA ${schema.name};\n`])
+            .concat(_(schema.tables).map(generateTable));
+
+    function generateTable (table) {
+      const name = `${schema.name}.${table.name}`,
+            columns = _(table.attributes)
+                        .map(generateAttribute)
+                        .concat(_(table.dependencies)
+                                  .map(generateDependency))
+                        .join(', ');
+
+      return `CREATE TABLE ${name} (${columns});\n`;
+
+      function generateAttribute({name, type}) {
+        return `${name} ${type.length > 0 ? type : 'text'}`;
+      }
+
+      function generateDependency(dependency) {
+        const type = 'bigint NOT NULL';
+
+        return `${dependency}_id ${type} REFERENCES ${dependency}`;
+      }
+    }
+  }
+}
+
+function orderDependencies({name, schemas}) {
+  const orderedSchemas = [],
+        orderedSchema = {};
+
+  const {dependentsMap, roots} = createDependentsMap(schemas);
+
+  log({dependentsMap});
+
+  for (let i = 0; i < roots.length; i++) {
+    const {schema, table} = roots[i];
+    log('root', i, schema.name, table.name);
+    const dependents = (dependentsMap[schema.name] || {})[table.name] || [];
+    log(({dependents}));
+    if (dependents) dependents.forEach(createDependentHandler(dependentsMap, roots));
+  }
+
+  log('roots', roots);
+  log('groupedroots', _(roots).groupBy(root => root.schema.name));
+
+  return {name, orderedSchemas};
+
+  function createDependentHandler (dependentsMap, roots) {
+    return dependent => {
+      log('->', dependent.schema.name, dependent.table.name);
+
+      const map = dependentsMap[dependent.schema.name];
+
+      if (map && map[dependent.table.name]) delete map[dependent.table.name];
+
+      dependent.table.dependencies.forEach(dependency => {
+        log('d', dependency);
+      });
+
+
+      roots.push(dependent);
+    };
+  }
+
+  function createDependentsMap(schemas) {
+    const dependentsMap = {},
+          schemaMap = {},
+          roots = [];
+
+    schemas.forEach(schema => schemaMap[schema.name]);
+    schemas.forEach(handleSchema);
+
+    return {dependentsMap, roots};
+
+    function handleSchema(schema) {
+      const {name, tables} = schema,
+            map = (dependentsMap[name] = dependentsMap[name] || {});
+
+      console.log('!!', name);
+
+      tables.forEach(handleTable);
+
+      function handleTable(table) {
+        const {attributes, dependencies} = table;
+
+        if (dependencies.length === 0) roots.push({schema, table});
+
+        const dependent = {attribute: 'id', schema, table};
+
+        dependencies.forEach(createDependenciesHandler(dependent));
+      }
+
+      function createDependenciesHandler(dependent) {
+        return dependency => {
+          console.log('dependency', dependency);
+          const {schema, table} = dependency;
+
+          dependency.schema = dependency.schema || name;
+          addDependent(dependency.schema, table, dependent);
+        };
+      }
+    }
+
+    function addDependent(schema, table, dependent) {
+      console.log('ad', schema, table);
+      const map = (dependentsMap[schema] = dependentsMap[schema] || {});
+
+      (map[table] = map[table] || []).push(dependent);
+    }
+  }
+
+  // schemas.forEach(schema => {
+  //   const {name, tables} = schema;
+
+  //   const tableMap = createTableMap(tables),
+  //         {ordered, dependencyMap} = createDependencyMap(schema, tableMap);
+
+  //   log(name, 'tableMap', tableMap);
+  //   log(name, 'dependencyMap', util.inspect(dependencyMap, {showHidden: true, depth: 1}));
+  //   log(name, 'ordered', util.inspect(ordered, {showHidden: true, depth: null}));
+
+  //   for (let i = 0; i < ordered.length; i++) {
+  //     log(name, 'ordered', i, ordered[i]);
+  //     const dependents = dependencyMap[ordered[i].name];
+  //     log(({dependents}));
+  //     if (dependents) dependents.forEach(createDependentHandler(dependencyMap, ordered));
+  //   }
+
+  //   orderedSchema[name] = ordered;
+
+
+  //   function createDependencyMap(schema, tableMap) {
+  //     const dependencyMap = {};
+
+  //     const externalSchemaDependencies = {},
+  //           ordered = [];
+
+  //     tables.forEach(table => {
+  //       const {name: tableName, attributes, dependencies} = table;
+
+  //       if (dependencies.length === 0) ordered.push(table);
+
+  //       const dependency = {attribute: 'id', schema, table};
+
+  //       dependencies.forEach(({schema, table}) => {
+  //         log({schema, table});
+  //         if (schema !== undefined) (externalSchemaDependencies[schema] = externalSchemaDependencies[schema] || []).push(dependency);
+  //         (dependencyMap[table] = dependencyMap[table] || []).push(dependency);
+  //       });
+  //     });
+
+  //     console.log('ordered', util.inspect(ordered, null, 2));
+
+  //     return {ordered, dependencyMap};
+  //   }
+
+  //   function createTableMap(tables) {
+  //     const tableMap = {};
+  //     tables.forEach(table => {
+  //       if (tableMap[table.name]) throw new Error(`Duplicate table name (${table.name})!`);
+  //       tableMap[table.name] = table;
+  //     });
+  //     return tableMap;
+  //   }
+
+  //   function createDependentHandler (dependencyMap, tableMap) {
+  //     return dependency => {
+  //       log('->', dependency);
+  //       ordered.push(dependency);
+  //     };
+  //   }
+  // });
+
+
+
+  // return {name, orderedSchemas};
+}
+
+function log(...args) {
+  console.log.apply(console, args.map(transformArg));
+
+  function transformArg(arg) {
+    switch (typeof arg) {
+      case 'object': return util.inspect(arg, {showHidden: true, depth: null});
+      default: return arg;
+    }
+  }
+}

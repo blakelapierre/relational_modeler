@@ -7,16 +7,16 @@ export default {
     return element.toObject();
   },
 
-  Model (name, databases) {
-    return join({name, databases});
+  Model (name, schemas) {
+    return join({name, schemas});
   },
 
-  Database (name, tables) {
+  Schema (name, tables) {
     return join({name, tables});
   },
 
   Table (name, attributes, dependencies) {
-    return join({name, attributes, dependencies});
+    return join({name, attributes: attributes.toObject()[0], dependencies});
   },
 
   Attribute (name, type) {
@@ -27,16 +27,24 @@ export default {
     return type.toObject();
   },
 
-  ValueList (values) {
+  List (values) {
     return join({type: 'List', values});
   },
 
-  ValueSet (values) {
+  Set (values) {
     return join({type: 'Set', values});
   },
 
-  Dependency (glyph, name) {
-    return name.toObject();
+  Dependency (glyph, reference) {
+    return reference.toObject();
+  },
+
+  SchemaTableName (schema, dot, table) {
+    return join({schema, table});
+  },
+
+  TableName (table) {
+    return join({table});
   },
 
   name (first_character, additional_characters) {

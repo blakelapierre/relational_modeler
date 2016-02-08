@@ -9,6 +9,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "lazy.js": "^0.4.2",
+    "lodash": "^4.2.1",
     "ohm-js": "^0.9.0"
+  },
+  "jshintConfig": {
+    "esnext": true
   }
 }
