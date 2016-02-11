@@ -13,7 +13,7 @@ const result = run('./tests/samples/personal.model', grammar, semantics, 'toObje
 
 log(util.inspect(result, false, null));
 
-log(toPostgreSQL(orderDependencies(result)).join(''));
+log(toPostgreSQL(orderDependencies(result)).join('\n'));
 
 function loadGrammarWithSemantics(grammarName, semanticNames = [], fileName = `./grammar/${grammarName}.ohm`) {
   const grammar = ohm.grammars(fs.readFileSync(fileName))[grammarName],
@@ -40,49 +40,48 @@ function run(modelFile, grammar, semantics, operation) {
 }
 
 function toPostgreSQL({model, orderedDependencies}) {
-  console.log(model);
-  return _.flatMap(model.schemas, generateSchema);
+  const {schemas, schemaMap} = model;
 
-  function generateSchema(schema) {
-    console.log(schema);
-    return _.concat([`CREATE SCHEMA ${schema.name};\n`],
-                   _.map(schema.tables, generateTable));
+  const createdSchema = _.mapValues(schemaMap, _ => false);
 
-    function generateTable (table) {
-      const name = `${schema.name}.${table.name}`,
-            columns = _.map(table.attributes, generateAttribute)
-                       .concat(_.map(table.dependencies, generateDependency))
-                       .join(', ');
+  console.log({createdSchema});
 
-      return `CREATE TABLE ${name} (${columns});\n`;
+  return _.flatMap(orderedDependencies, emitDependency);
 
-      function generateAttribute({name, type}) {
-        return `${name} ${type.length > 0 ? type : 'text'}`;
-      }
+  function emitDependency(dependency) {
+    const [schemaName, tableName] = dependency.split('.');
 
-      function generateDependency({preArity, postArity, reference: {schema, table}}) {
-        const id = (schema === table ? '' : `${schema}.`) + `${table}_id`,
-              references = `${schema}.${table}`;
+    const commands = [];
+    if (!createdSchema[schemaName]) {
+      commands.push(`CREATE SCHEMA ${schemaName};`);
+      createdSchema[schemaName] = true;
+    }
 
-        let type = 'bigint NOT NULL';
+    const table = schemaMap[schemaName][tableName],
+          columns = _.map(table.attributes, generateAttribute)
+                     .concat(_.map(table.dependencies, generateDependency))
+                     .join(', ');
 
-        if (postArity === 1) type += ' UNIQUE';
+    commands.push(`CREATE TABLE ${schemaName}.${tableName} (${columns});`);
 
-        return `${id} ${type} REFERENCES ${references}`;
-      }
+    return commands;
+
+    function generateAttribute({name, type}) {
+      return `${name} ${type.length > 0 ? type : 'text'}`;
+    }
+
+    function generateDependency({preArity, postArity, reference: {schema, table}}) {
+      const id = (schema === table ? '' : `${schema}.`) + `${table}_id`,
+            references = `${schema}.${table}`;
+
+      let type = 'bigint NOT NULL';
+
+      if (postArity === 1) type += ' UNIQUE';
+
+      return `${id} ${type} REFERENCES ${references}`;
     }
   }
 }
-
-// function * generateSchema(name, objects) {
-//   yield `CREATE SCHEMA ${name};`;
-
-//   yield* generateObjects(objects);
-
-//   function * generateObjects(objects) {
-
-//   }
-// }
 
 function orderDependencies(model) {
   const {schemas} = model;
@@ -91,7 +90,7 @@ function orderDependencies(model) {
 
   model.schemaMap = schemaMap;
 
-  const orderedDependencies = topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse();
+  const orderedDependencies = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*');
   console.log({orderedDependencies});
 
   return {model, orderedDependencies};

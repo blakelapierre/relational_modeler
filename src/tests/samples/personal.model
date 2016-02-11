@@ -11,6 +11,15 @@ personal {
 
   skills {
     skill {name}
-    another {attribute}
+  }
+
+  some_other_schema {
+    with {a, whole, bunch}
+
+    of {stuff}
+      -> but_not
+
+    but_not {that, much}
+      -> inventory.stock
   }
 }
