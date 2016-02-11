@@ -41,7 +41,7 @@ function run(modelFile, grammar, semantics, operation) {
 
 function toPostgreSQL({model, orderedDependencies}) {
   console.log(model);
-  return _.flatten(_.map(model.schemas, generateSchema));
+  return _.flatMap(model.schemas, generateSchema);
 
   function generateSchema(schema) {
     console.log(schema);
@@ -91,14 +91,12 @@ function orderDependencies(model) {
 
   model.schemaMap = schemaMap;
 
-  const dependencyGraph = _.flatMap(_.map(schemas, gSchemas));
-
-  const orderedDependencies = tsort(dependencyGraph).sort().reverse();
+  const orderedDependencies = tsort(_.flatMap(_.map(schemas, analyzeSchema))).sort().reverse();
   console.log({orderedDependencies});
 
   return {model, orderedDependencies};
 
-  function gSchemas({name, tables}) {
+  function analyzeSchema({name, tables}) {
     let schemaName = name;
     schemaMap[schemaName] = {};
     return _.flatMap(_.map(tables, gTables));
@@ -106,7 +104,6 @@ function orderDependencies(model) {
     function gTables(table) {
       const {name, dependencies} = table;
       schemaMap[schemaName][name] = table;
-      // if (dependencies.length === 0) ordered.push(`${schemaName}.${name}`);
       if (dependencies.length === 0) return [[`${schemaName}.${name}`, `*`]];
       return _.map(dependencies, ({reference: {schema, table}}) => [`${schemaName}.${name}`, `${schema || schemaName}.${table}`]);
     }
