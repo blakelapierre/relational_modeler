@@ -19,7 +19,7 @@ RM {
   SQLType = "bigint"
           | "text"
 
-  Dependency = dependency_glyph Reference
+  Dependency = arity? dependency_glyph arity? Reference
 
   Reference = SchemaTableName
             | TableName
@@ -36,5 +36,6 @@ RM {
   first_character = letter | "_"
   additional_character = first_character | alnum
 
+  arity = "*" | "+" | digit+
   dependency_glyph = "->"
 }

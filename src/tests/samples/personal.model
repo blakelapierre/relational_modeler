@@ -4,13 +4,13 @@ personal {
       -> physical_item
 
     physical_item {location, dimension}
-      -> item
-      -> skills.skill
+      ->  item
 
     item {name, description, type {'generic', 'food', 'tool'}}
   }
 
   skills {
     skill {name}
+    another {attribute}
   }
 }

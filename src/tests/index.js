@@ -4,7 +4,8 @@ import fs from 'fs';
 import util from 'util';
 
 import ohm from 'ohm-js';
-import _ from 'lazy.js';
+import _ from 'lodash';
+import tsort from 'tsort';
 
 const {grammar, semantics} = loadGrammarWithSemantics('RM', ['toObject']);
 
@@ -38,24 +39,20 @@ function run(modelFile, grammar, semantics, operation) {
   }
 }
 
-function toPostgreSQL(model) {
-  return _(model.schemas)
-    .map(generateSchema)
-    .flatten()
-    .toArray();
+function toPostgreSQL({model, orderedDependencies}) {
+  console.log(model);
+  return _.flatten(_.map(model.schemas, generateSchema));
 
   function generateSchema(schema) {
-    return _()
-            .concat([`CREATE SCHEMA ${schema.name};\n`])
-            .concat(_(schema.tables).map(generateTable));
+    console.log(schema);
+    return _.concat([`CREATE SCHEMA ${schema.name};\n`],
+                   _.map(schema.tables, generateTable));
 
     function generateTable (table) {
       const name = `${schema.name}.${table.name}`,
-            columns = _(table.attributes)
-                        .map(generateAttribute)
-                        .concat(_(table.dependencies)
-                                  .map(generateDependency))
-                        .join(', ');
+            columns = _.map(table.attributes, generateAttribute)
+                       .concat(_.map(table.dependencies, generateDependency))
+                       .join(', ');
 
       return `CREATE TABLE ${name} (${columns});\n`;
 
@@ -63,99 +60,142 @@ function toPostgreSQL(model) {
         return `${name} ${type.length > 0 ? type : 'text'}`;
       }
 
-      function generateDependency(dependency) {
-        const type = 'bigint NOT NULL';
+      function generateDependency({preArity, postArity, reference: {schema, table}}) {
+        const id = (schema === table ? '' : `${schema}.`) + `${table}_id`,
+              references = `${schema}.${table}`;
 
-        return `${dependency}_id ${type} REFERENCES ${dependency}`;
+        let type = 'bigint NOT NULL';
+
+        if (postArity === 1) type += ' UNIQUE';
+
+        return `${id} ${type} REFERENCES ${references}`;
       }
     }
   }
 }
 
-function orderDependencies({name, schemas}) {
-  const orderedSchemas = [],
-        orderedSchema = {};
+// function * generateSchema(name, objects) {
+//   yield `CREATE SCHEMA ${name};`;
 
-  const {dependentsMap, roots} = createDependentsMap(schemas);
+//   yield* generateObjects(objects);
 
-  log({dependentsMap});
+//   function * generateObjects(objects) {
 
-  for (let i = 0; i < roots.length; i++) {
-    const {schema, table} = roots[i];
-    log('root', i, schema.name, table.name);
-    const dependents = (dependentsMap[schema.name] || {})[table.name] || [];
-    log(({dependents}));
-    if (dependents) dependents.forEach(createDependentHandler(dependentsMap, roots));
-  }
+//   }
+// }
 
-  log('roots', roots);
-  log('groupedroots', _(roots).groupBy(root => root.schema.name));
+function orderDependencies(model) {
+  const {schemas} = model;
+  const ordered = [];
+  const schemaMap = {};
 
-  return {name, orderedSchemas};
+  model.schemaMap = schemaMap;
 
-  function createDependentHandler (dependentsMap, roots) {
-    return dependent => {
-      log('->', dependent.schema.name, dependent.table.name);
+  const dependencyGraph = _.flatMap(_.map(schemas, gSchemas));
 
-      const map = dependentsMap[dependent.schema.name];
+  const orderedDependencies = tsort(dependencyGraph).sort().reverse();
+  console.log({orderedDependencies});
 
-      if (map && map[dependent.table.name]) delete map[dependent.table.name];
+  return {model, orderedDependencies};
 
-      dependent.table.dependencies.forEach(dependency => {
-        log('d', dependency);
-      });
+  function gSchemas({name, tables}) {
+    let schemaName = name;
+    schemaMap[schemaName] = {};
+    return _.flatMap(_.map(tables, gTables));
 
-
-      roots.push(dependent);
-    };
-  }
-
-  function createDependentsMap(schemas) {
-    const dependentsMap = {},
-          schemaMap = {},
-          roots = [];
-
-    schemas.forEach(schema => schemaMap[schema.name]);
-    schemas.forEach(handleSchema);
-
-    return {dependentsMap, roots};
-
-    function handleSchema(schema) {
-      const {name, tables} = schema,
-            map = (dependentsMap[name] = dependentsMap[name] || {});
-
-      console.log('!!', name);
-
-      tables.forEach(handleTable);
-
-      function handleTable(table) {
-        const {attributes, dependencies} = table;
-
-        if (dependencies.length === 0) roots.push({schema, table});
-
-        const dependent = {attribute: 'id', schema, table};
-
-        dependencies.forEach(createDependenciesHandler(dependent));
-      }
-
-      function createDependenciesHandler(dependent) {
-        return dependency => {
-          console.log('dependency', dependency);
-          const {schema, table} = dependency;
-
-          dependency.schema = dependency.schema || name;
-          addDependent(dependency.schema, table, dependent);
-        };
-      }
-    }
-
-    function addDependent(schema, table, dependent) {
-      console.log('ad', schema, table);
-      const map = (dependentsMap[schema] = dependentsMap[schema] || {});
-
-      (map[table] = map[table] || []).push(dependent);
+    function gTables(table) {
+      const {name, dependencies} = table;
+      schemaMap[schemaName][name] = table;
+      // if (dependencies.length === 0) ordered.push(`${schemaName}.${name}`);
+      if (dependencies.length === 0) return [[`${schemaName}.${name}`, `*`]];
+      return _.map(dependencies, ({reference: {schema, table}}) => [`${schemaName}.${name}`, `${schema || schemaName}.${table}`]);
     }
   }
+  // const schemas = [],
+  //       orderedSchema = {};
+
+  // const {dependentsMap, roots} = createDependentsMap(model.schemas);
+
+  // log({dependentsMap});
+
+  // for (let i = 0; i < roots.length; i++) {
+  //   const {schema, table} = roots[i];
+  //   log('root', i, schema.name, table.name);
+  //   const dependents = (dependentsMap[schema.name] || {})[table.name] || [];
+  //   log(({dependents}));
+  //   if (dependents) dependents.forEach(createDependentHandler(dependentsMap, roots));
+  // }
+
+  // log('roots', roots);
+  // // log('groupedroots', _(roots).groupBy(root => root.schema.name));
+
+  // schemas.splice(0, roots.length, ...roots);
+
+  // return {name: model.name, schemas: model.schemas};
+
+  // function createDependentHandler (dependentsMap, roots) {
+  //   return dependent => {
+  //     log('->', dependent.schema.name, dependent.table.name);
+
+  //     const map = dependentsMap[dependent.schema.name];
+
+  //     if (map && map[dependent.table.name]) delete map[dependent.table.name];
+
+  //     dependent.table.dependencies.forEach(dependency => {
+  //       log('d', dependency);
+  //     });
+
+
+  //     roots.push(dependent);
+  //   };
+  // }
+
+  // function createDependentsMap(schemas) {
+  //   const dependentsMap = {},
+  //         schemaMap = {},
+  //         roots = [];
+
+  //   schemas.forEach(schema => schemaMap[schema.name]);
+  //   schemas.forEach(handleSchema);
+
+  //   return {dependentsMap, roots};
+
+  //   function handleSchema(schema) {
+  //     const {name, tables} = schema,
+  //           map = (dependentsMap[name] = dependentsMap[name] || {});
+
+  //     console.log('!!', name);
+
+  //     tables.forEach(handleTable);
+
+  //     function handleTable(table) {
+  //       const {attributes, dependencies} = table;
+
+  //       if (dependencies.length === 0) roots.push({schema, table});
+
+  //       const dependent = {attribute: 'id', schema, table};
+
+  //       dependencies.forEach(createDependenciesHandler(dependent));
+  //     }
+
+  //     function createDependenciesHandler(dependent) {
+  //       return dependency => {
+  //         console.log('dependency', dependency);
+  //         const {schema, table} = dependency;
+
+  //         dependency.reference.schema = dependency.reference.schema || name;
+  //         addDependent(dependency.reference.schema, table, dependent);
+  //       };
+  //     }
+  //   }
+
+  //   function addDependent(schema, table, dependent) {
+  //     console.log('ad', schema, table);
+  //     const map = (dependentsMap[schema] = dependentsMap[schema] || {});
+
+  //     (map[table] = map[table] || []).push(dependent);
+  //   }
+  // }
 
   // schemas.forEach(schema => {
   //   const {name, tables} = schema;

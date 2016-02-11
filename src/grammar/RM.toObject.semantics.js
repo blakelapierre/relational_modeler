@@ -35,8 +35,12 @@ export default {
     return join({type: 'Set', values});
   },
 
-  Dependency (glyph, reference) {
-    return reference.toObject();
+  Dependency (preArity, glyph, postArity, reference) {
+    return join({
+      preArity: $ => $(preArity)[0] || 1,
+      postArity: $ => $(postArity)[0] || 1,
+      reference
+    });
   },
 
   SchemaTableName (schema, dot, table) {
@@ -53,6 +57,9 @@ export default {
 };
 
 function join(obj) {
-  for (let key in obj) if (obj[key].toObject) obj[key] = obj[key].toObject();
+  for (let key in obj) {
+    if (typeof obj[key] === 'function') obj[key] = obj[key](o => o.toObject());
+    else if (obj[key].toObject) obj[key] = obj[key].toObject();
+  }
   return obj;
 }
