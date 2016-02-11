@@ -9,15 +9,11 @@ RM {
 
   Type = List
        | Set
-       | SQLType
 
   List = SquareContained<ListOf<Value, ",">>
   Set = Contained<ListOf<Value, ",">>
   Value = digit+
         | IContained<"'", name, "'">
-
-  SQLType = "bigint"
-          | "text"
 
   Dependency = arity? dependency_glyph arity? Reference
 
@@ -38,4 +34,13 @@ RM {
 
   arity = "*" | "+" | digit+
   dependency_glyph = "->"
+}
+
+RM_SQL <: RM {
+  Type := List
+        | Set
+        | SQLType
+
+  SQLType = "bigint"
+          | "text"
 }

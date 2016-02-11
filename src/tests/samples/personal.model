@@ -6,7 +6,7 @@ personal {
     physical_item {location, dimension}
       ->  item
 
-    item {name, description, type {'generic', 'food', 'tool'}}
+    item {name bigint, description, type {'generic', 'food', 'tool'}}
   }
 
   skills {

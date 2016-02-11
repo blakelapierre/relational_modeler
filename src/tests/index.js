@@ -7,7 +7,7 @@ import ohm from 'ohm-js';
 import _ from 'lodash';
 import tsort from 'tsort';
 
-const {grammar, semantics} = loadGrammarWithSemantics('RM', ['toObject']);
+const {grammar, semantics} = loadGrammarWithSemantics('RM_SQL', ['toObject'], './grammar/RM.ohm');
 
 const result = run('./tests/samples/personal.model', grammar, semantics, 'toObject');
 
@@ -15,8 +15,8 @@ log(util.inspect(result, false, null));
 
 log(toPostgreSQL(orderDependencies(result)).join(''));
 
-function loadGrammarWithSemantics(grammarName, semanticNames = []) {
-  const grammar = ohm.grammar(fs.readFileSync(`./grammar/${grammarName}.ohm`)),
+function loadGrammarWithSemantics(grammarName, semanticNames = [], fileName = `./grammar/${grammarName}.ohm`) {
+  const grammar = ohm.grammars(fs.readFileSync(fileName))[grammarName],
         semantics = grammar.semantics();
 
   semanticNames.forEach(addSemanticName);
