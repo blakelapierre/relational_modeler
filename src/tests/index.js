@@ -91,10 +91,14 @@ function orderDependencies(model) {
 
   model.schemaMap = schemaMap;
 
-  const orderedDependencies = tsort(_.flatMap(_.map(schemas, analyzeSchema))).sort().reverse();
+  const orderedDependencies = topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse();
   console.log({orderedDependencies});
 
   return {model, orderedDependencies};
+
+  function topologicalSort(links) {
+    return tsort(links).sort(); // Note: `tsort` only sets up the graph, must call `sort` to get the ordering. I had initially begun to implement my own topological sort, as `model` already contains a graph of the dependencies, but abandoned it due to finding this library function. If performance is ever a concern, there is a bit of optimization that can be done here.
+  }
 
   function analyzeSchema({name, tables}) {
     let schemaName = name;
