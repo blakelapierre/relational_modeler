@@ -42,20 +42,13 @@ function run(modelFile, grammar, semantics, operation) {
 function toPostgreSQL({model, orderedDependencies}) {
   const {schemas, schemaMap} = model;
 
-  const createdSchema = _.mapValues(schemaMap, _ => false);
-
-  console.log({createdSchema});
-
-  return _.flatMap(orderedDependencies, emitDependency);
+  return _.concat(_.map(schemaMap, (schema, name) => `CREATE SCHEMA ${name};`),
+                  _.flatMap(orderedDependencies, emitDependency));
 
   function emitDependency(dependency) {
     const [schemaName, tableName] = dependency.split('.');
 
     const commands = [];
-    if (!createdSchema[schemaName]) {
-      commands.push(`CREATE SCHEMA ${schemaName};`);
-      createdSchema[schemaName] = true;
-    }
 
     const table = schemaMap[schemaName][tableName],
           columns = _.map(table.attributes, generateAttribute)
@@ -67,12 +60,23 @@ function toPostgreSQL({model, orderedDependencies}) {
     return commands;
 
     function generateAttribute({name, type}) {
-      return `${name} ${type.length > 0 ? type : 'text'}`;
+      return `${name} ${type.length > 0 ? formatType(type[0]) : 'text'}`;
+
+      function formatType(type) {
+        console.log({type});
+        if (typeof type === 'string') return type;
+
+        if (type.type === 'Set') {
+          commands.push(`CREATE TYPE ${schemaName}.${tableName}_${name}_enum (${type.values.map(value => "'" + value + "'").join(',')});`);
+          return `${tableName}_${name}_enum NOT NULL DEFAULT '${type.values[0]}'`;
+        }
+      }
     }
 
     function generateDependency({preArity, postArity, reference: {schema, table}}) {
-      const id = (schema === table ? '' : `${schema}.`) + `${table}_id`,
-            references = `${schema}.${table}`;
+      console.log(schemaName, schema, table);
+      const id = (schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_id`,
+            references = `${schema || schemaName}.${table}`;
 
       let type = 'bigint NOT NULL';
 
