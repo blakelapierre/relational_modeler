@@ -3,7 +3,6 @@ import tsort from 'tsort';
 
 export default function orderTables(model) {
   const {schemas} = model;
-  const ordered = [];
   const schemaMap = {};
 
   model.schemaMap = schemaMap; // mutation of passed object!
