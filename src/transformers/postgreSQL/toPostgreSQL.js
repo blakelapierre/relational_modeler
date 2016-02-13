@@ -65,7 +65,7 @@ export default function toPostgreSQL({model, orderedTables}) {
         else if (type.type === 'Numeric') {
           const parameters = [];
           if (type.precision !== undefined) parameters.push(type.precision);
-          if (type.scale !== undefined) paramters.push(type.scale);
+          if (type.scale !== undefined) parameters.push(type.scale);
 
           if (parameters.length > 0) return `NUMERIC(${parameters.join(',')})`;
           return `NUMERIC`;
