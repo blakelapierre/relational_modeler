@@ -64,7 +64,7 @@ function orderTables(model) {
     function gTables(table) {
       const {name, dependencies} = table;
       schemaMap[schemaName][name] = table;
-      if (dependencies.length === 0) return [[`${schemaName}.${name}`, `*`]];
+      if (dependencies.length === 0) return [[`${schemaName}.${name}`, '*']];
       return _.map(dependencies, ({reference: {schema, table}}) => [`${schemaName}.${name}`, `${schema || schemaName}.${table}`]);
     }
   }
