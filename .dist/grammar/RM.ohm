@@ -1,0 +1,92 @@
+RM {
+  Model = name AttributeList? Contained<Schema*>
+  Schema = name AttributeList? Contained<Table*>
+
+  Table = name AttributeList? Dependency*
+
+  AttributeList = Contained<ListOf<Attribute, ",">>
+  Attribute = PrimaryKey? name Optional? Type?
+
+  PrimaryKey = "!"
+  Optional = "?"
+
+  Type = List
+       | Set
+
+  List = SquareContained<ListOf<Value, ",">>
+  Set = Contained<ListOf<Value, ",">>
+  Value = digit+
+        | IContained<"'", name, "'">
+
+  Dependency = arity? dependency_glyph arity? Reference
+
+  Reference = SchemaTableName
+            | TableName
+
+  SchemaTableName = name "." name
+  TableName = name
+
+  Contained<element> = IContained<"{", element, "}">
+  SquareContained<element> = IContained<"[", element, "]">
+  RoundContained<element> = IContained<"(", element, ")">
+
+  IContained<open, element, close> = open element close
+
+  name = first_character additional_character*
+  first_character = letter | "_"
+  additional_character = first_character | alnum
+
+  arity = "*" | "+" | digit+
+  dependency_glyph = "->"
+}
+
+RM_PGSQL <: RM {
+  Type := List
+        | Set
+        | SQLType
+
+  SQLType = "bigint"
+          | "smallint"
+          | "integer"
+          | "real"
+          | "double precision"
+          | "smallserial"
+          | "serial"
+          | "bigserial"
+          | "money"
+          | "blob"
+          | "bytea"
+          | "boolean"
+          | "text"
+          | "timestamp"
+          | "date"
+          | "time"
+          | "interval"
+          | "point"
+          | "line"
+          | "lseq"
+          | "box"
+          | "path"
+          | "polygon"
+          | "circle"
+          | "cidr"
+          | "inet"
+          | "macaddr"
+          | "json"
+          | "jsonb"
+          | "int4range"
+          | "int8range"
+          | "numrange"
+          | "tsrange"
+          | "tstzrange"
+          | "daterange"
+          | Numeric
+
+  Numeric = numeric RoundContained<NumericParameters>?
+  NumericParameters = Precision OptionalScale?
+  Precision = number
+  OptionalScale = "," number
+
+  numeric = "numeric" | "decimal"
+  number = digit+
+}

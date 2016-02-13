@@ -1,8 +1,9 @@
 {
   "name": "relational_modeler",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "bin": { "relational_modeler": "./.dist/index.js"},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
