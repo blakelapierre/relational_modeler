@@ -40,16 +40,46 @@ RM {
   dependency_glyph = "->"
 }
 
-RM_SQL <: RM {
+RM_PGSQL <: RM {
   Type := List
         | Set
         | SQLType
 
   SQLType = "bigint"
+          | "smallint"
+          | "integer"
+          | "real"
+          | "double precision"
+          | "smallserial"
           | "serial"
           | "bigserial"
+          | "money"
+          | "blob"
+          | "bytea"
+          | "boolean"
           | "text"
           | "timestamp"
+          | "date"
+          | "time"
+          | "interval"
+          | "point"
+          | "line"
+          | "lseq"
+          | "box"
+          | "path"
+          | "polygon"
+          | "circle"
+          | "cidr"
+          | "inet"
+          | "macaddr"
+          | "json"
+          | "jsonb"
+          | "int4range"
+          | "int8range"
+          | "numrange"
+          | "tsrange"
+          | "tstzrange"
+          | "daterange"
           | Numeric
 
   Numeric = numeric RoundContained<NumericParameters>?
@@ -57,6 +87,6 @@ RM_SQL <: RM {
   Precision = number
   OptionalScale = "," number
 
-  numeric = "numeric"
+  numeric = "numeric" | "decimal"
   number = digit+
 }

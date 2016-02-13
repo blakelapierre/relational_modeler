@@ -9,7 +9,7 @@ import _ from 'lodash';
 import orderTables from '../transformers/orderTables';
 import toPostgreSQL from '../transformers/postgreSQL/toPostgreSQL';
 
-const {grammar, semantics} = loadGrammarWithSemantics('RM_SQL', ['toObject'], './grammar/RM.ohm');
+const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
 
 const model = run('./tests/samples/personal.model', grammar, semantics, 'toObject');
 

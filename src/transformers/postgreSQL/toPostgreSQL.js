@@ -70,6 +70,9 @@ export default function toPostgreSQL({model, orderedTables}) {
           if (parameters.length > 0) return `NUMERIC(${parameters.join(',')})`;
           return `NUMERIC`;
         }
+        else if (type.type === 'Blob') {
+          return `BYTEA`;
+        }
         else throw new Error(`${type.type} not implemented!`);
       }
     }
