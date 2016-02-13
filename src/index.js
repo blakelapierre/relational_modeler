@@ -11,7 +11,7 @@ import {loadGrammarWithSemantics, run} from './ohmLoader';
 
 const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
 
-const model = run(process.argv[2], grammar, semantics, 'toObject');
+const model = run(process.argv[1], grammar, semantics, 'toObject');
 
 // log(util.inspect(model, false, null));
 

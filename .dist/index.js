@@ -15,7 +15,7 @@ var $__4 = ($__ohmLoader__ = require("./ohmLoader"), $__ohmLoader__ && $__ohmLoa
 var $__7 = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm'),
     grammar = $__7.grammar,
     semantics = $__7.semantics;
-var model = run(process.argv[2], grammar, semantics, 'toObject');
+var model = run(process.argv[1], grammar, semantics, 'toObject');
 log(toPostgreSQL(orderTables(model)).join('\n'));
 function log() {
   for (var args = [],
