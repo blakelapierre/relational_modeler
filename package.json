@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "bin": {
-    "relational_modeler": "node ./.dist/tests/index.js"
+    "relational_modeler": "./bin/relational_modeler"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
