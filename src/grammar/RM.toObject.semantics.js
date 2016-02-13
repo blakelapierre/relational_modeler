@@ -1,3 +1,6 @@
+const defaultType = 'text',
+      defaultPrimaryKeyType = 'bigserial';
+
 export default {
   ListOf_some (element, separator, rest) {
     return [element.toObject()].concat(rest.toObject());
@@ -20,7 +23,9 @@ export default {
   },
 
   Attribute (primaryKey, name, optional, type) {
-    return join({name, primaryKey: primaryKey.toObject()[0] === '!', optional: optional.toObject()[0] === '?', type: type.toObject()[0] || defaultType});
+    primaryKey = primaryKey.toObject()[0] === '!';
+    type = type.toObject()[0] || (primaryKey ? defaultPrimaryKeyType : defaultType);
+    return join({name, primaryKey, optional: optional.toObject()[0] === '?', type});
   },
 
   Type (type) {

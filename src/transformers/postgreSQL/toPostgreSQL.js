@@ -6,7 +6,7 @@ export default function toPostgreSQL({model, orderedTables}) {
   const {commonAttributes: modelAttributes, schemas} = model;
 
   const schemaMap = _.transform(schemas, (map, schema) => map[schema.name] = addTableMap(schema), {});
-console.log({schemaMap});
+
   model.schemaMap = schemaMap; // mutation of passed object!
 
   return createSchemas(schemas, schemaMap, orderedTables);
@@ -27,7 +27,7 @@ console.log({schemaMap});
     const [schemaName, tableName] = qualifiedTableName.split('.');
 
     const commands = [];
-console.log({map: schemaMap[schemaName]});
+
     const schema = schemaMap[schemaName],
           {commonAttributes: schemaAttributes} = schema,
           table = schema.tableMap[tableName],
