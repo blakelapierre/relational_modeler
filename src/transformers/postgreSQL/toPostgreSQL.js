@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import {createSchema, createTable, createType} from '../../grammar/sql/postgreSQL.js';
+import {createSchema, createTable, createType} from './sql';
 
 export default function toPostgreSQL({model, orderedTables}) {
   const {schemas, schemaMap} = model;
