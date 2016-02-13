@@ -3,9 +3,18 @@ import _ from 'lodash';
 import {createSchema, createTable, createType} from './sql';
 
 export default function toPostgreSQL({model, orderedTables}) {
-  const {schemas, schemaMap} = model;
+  const {commonAttributes: modelAttributes, schemas} = model;
+
+  const schemaMap = _.transform(schemas, (map, schema) => map[schema.name] = addTableMap(schema), {});
+console.log({schemaMap});
+  model.schemaMap = schemaMap; // mutation of passed object!
 
   return createSchemas(schemas, schemaMap, orderedTables);
+
+  function addTableMap(schema) {
+    schema.tableMap = _.transform(schema.tables, (map, table) => map[table.name] = table, {});
+    return schema;
+  }
 
   function createSchemas(schemas, schemaMap, orderedTables) {
     return _.concat(
@@ -18,9 +27,12 @@ export default function toPostgreSQL({model, orderedTables}) {
     const [schemaName, tableName] = qualifiedTableName.split('.');
 
     const commands = [];
-
-    const table = schemaMap[schemaName][tableName],
-          columns = _.map(table.attributes, generateAttribute)
+console.log({map: schemaMap[schemaName]});
+    const schema = schemaMap[schemaName],
+          {commonAttributes: schemaAttributes} = schema,
+          table = schema.tableMap[tableName],
+          attributes = _.flatMap([modelAttributes, schemaAttributes, table.attributes]),
+          columns = _.map(attributes, generateAttribute)
                      .concat(_.map(table.dependencies, generateDependency))
                      .join(', ');
 
@@ -29,20 +41,24 @@ export default function toPostgreSQL({model, orderedTables}) {
     return commands;
 
     function generateAttribute({name, optional, type}) {
-      const parts = [name, type.length > 0 ? formatType(type[0]) : 'text'];
+      const parts = [name, type ? formatType(type) : 'text'];
 
       if (!optional) parts.push('NOT NULL');
 
       return parts.join(' ');
 
       function formatType(type) {
-        if (typeof type === 'string') return type;
+        if (typeof type === 'string') {
+          if (type === 'timestamp') return `${type} DEFAULT now()`;
+          return type;
+        }
 
         if (type.type === 'Set') {
           // These names are guaranteed to be unique, but maybe we want a way to de-duplicate equivalent types?
-          commands.push(createType(`${schemaName}.${tableName}_${name}_enum`, type.values));
+          const newTypeName = `${tableName}_${name}_enum`;
+          commands.push(createType(`${schemaName}.${newTypeName}`, type.values));
 
-          return `${tableName}_${name}_enum NOT NULL DEFAULT '${type.values[0]}'`;
+          return `${newTypeName} NOT NULL DEFAULT '${type.values[0]}'`;
         }
         else throw new Error(`${type} not implemented!`);
       }

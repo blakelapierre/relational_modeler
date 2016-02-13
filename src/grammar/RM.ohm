@@ -1,6 +1,6 @@
 RM {
-  Model = name Contained<Schema*>
-  Schema = name Contained<Table*>
+  Model = name AttributeList? Contained<Schema*>
+  Schema = name AttributeList? Contained<Table*>
 
   Table = name AttributeList? Dependency*
 
@@ -44,5 +44,8 @@ RM_SQL <: RM {
         | SQLType
 
   SQLType = "bigint"
+          | "serial"
+          | "bigserial"
           | "text"
+          | "timestamp"
 }

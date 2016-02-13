@@ -1,3 +1,5 @@
+const defaultType = 'text';
+
 export default {
   ListOf_some (element, separator, rest) {
     return [element.toObject()].concat(rest.toObject());
@@ -7,12 +9,12 @@ export default {
     return element.toObject();
   },
 
-  Model (name, schemas) {
-    return join({name, schemas});
+  Model (name, commonAttributes, schemas) {
+    return join({name, commonAttributes: commonAttributes.toObject()[0] || [], schemas});
   },
 
-  Schema (name, tables) {
-    return join({name, tables});
+  Schema (name, commonAttributes, tables) {
+    return join({name, commonAttributes: commonAttributes.toObject()[0] || [], tables});
   },
 
   Table (name, attributes, dependencies) {
@@ -20,7 +22,7 @@ export default {
   },
 
   Attribute (name, optional, type) {
-    return join({name, optional: optional.toObject()[0] === '?', type});
+    return join({name, optional: optional.toObject()[0] === '?', type: type.toObject()[0] || defaultType});
   },
 
   Type (type) {
@@ -58,8 +60,10 @@ export default {
 
 function join(obj) {
   for (let key in obj) {
-    if (typeof obj[key] === 'function') obj[key] = obj[key](o => o.toObject());
-    else if (obj[key].toObject) obj[key] = obj[key].toObject();
+    const value = obj[key];
+    if (value === undefined) continue;
+    else if (typeof value === 'function') obj[key] = value(o => o.toObject());
+    else if (value.toObject) obj[key] = value.toObject();
   }
   return obj;
 }
