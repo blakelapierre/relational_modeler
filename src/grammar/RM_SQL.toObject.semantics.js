@@ -20,7 +20,7 @@ export default {
   },
 
   Attribute (name, optional, type) {
-    return join({name, optional, type});
+    return join({name, optional: optional.toObject()[0] === '?', type});
   },
 
   Type (type) {

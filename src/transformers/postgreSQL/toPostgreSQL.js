@@ -5,10 +5,14 @@ import {createSchema, createTable, createType} from '../../grammar/sql/postgreSQ
 export default function toPostgreSQL({model, orderedTables}) {
   const {schemas, schemaMap} = model;
 
-  return _.concat(
-           _.map(_.keys(schemaMap), createSchema), // Produce all schemas first
-           _.flatMap(orderedTables, processTable)
-         );
+  return createSchemas(schemas, schemaMap, orderedTables);
+
+  function createSchemas(schemas, schemaMap, orderedTables) {
+    return _.concat(
+      _.map(_.keys(schemaMap), createSchema), // Produce all schemas first
+      _.flatMap(orderedTables, processTable)
+    );
+  }
 
   function processTable(qualifiedTableName) {
     const [schemaName, tableName] = qualifiedTableName.split('.');
@@ -27,7 +31,7 @@ export default function toPostgreSQL({model, orderedTables}) {
     function generateAttribute({name, optional, type}) {
       const parts = [name, type.length > 0 ? formatType(type[0]) : 'text'];
 
-      if (optional.length === 0) parts.push('NOT NULL');
+      if (!optional) parts.push('NOT NULL');
 
       return parts.join(' ');
 
