@@ -6,11 +6,13 @@ personal {
     physical_item {location, dimension}
       ->  item
 
-    item {name bigint, description, type {'generic', 'food', 'tool'}}
+    item {name, description?, type {'generic', 'food', 'tool'}}
   }
 
   skills {
     skill {name}
+
+    table {attribute} -> skill
   }
 
   some_other_schema {

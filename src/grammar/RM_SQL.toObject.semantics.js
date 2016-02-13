@@ -19,8 +19,8 @@ export default {
     return join({name, attributes: attributes.toObject()[0], dependencies});
   },
 
-  Attribute (name, type) {
-    return join({name, type});
+  Attribute (name, optional, type) {
+    return join({name, optional, type});
   },
 
   Type (type) {

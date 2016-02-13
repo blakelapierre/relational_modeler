@@ -7,13 +7,15 @@ import ohm from 'ohm-js';
 import _ from 'lodash';
 import tsort from 'tsort';
 
+import {createSchema, createTable, createType} from '../grammar/sql/postgreSQL.js';
+
 const {grammar, semantics} = loadGrammarWithSemantics('RM_SQL', ['toObject'], './grammar/RM.ohm');
 
 const result = run('./tests/samples/personal.model', grammar, semantics, 'toObject');
 
 log(util.inspect(result, false, null));
 
-log(toPostgreSQL(orderDependencies(result)).join('\n'));
+log(toPostgreSQL(orderTables(result)).join('\n'));
 
 function loadGrammarWithSemantics(grammarName, semanticNames = [], fileName = `./grammar/${grammarName}.ohm`) {
   const grammar = ohm.grammars(fs.readFileSync(fileName))[grammarName],
@@ -39,14 +41,16 @@ function run(modelFile, grammar, semantics, operation) {
   }
 }
 
-function toPostgreSQL({model, orderedDependencies}) {
+function toPostgreSQL({model, orderedTables}) {
   const {schemas, schemaMap} = model;
 
-  return _.concat(_.map(schemaMap, (schema, name) => `CREATE SCHEMA ${name};`),
-                  _.flatMap(orderedDependencies, emitDependency));
+  return _.concat(
+           _.map(_.keys(schemaMap), createSchema), // Produce all schemas first
+           _.flatMap(orderedTables, processTable)
+         );
 
-  function emitDependency(dependency) {
-    const [schemaName, tableName] = dependency.split('.');
+  function processTable(qualifiedTableName) {
+    const [schemaName, tableName] = qualifiedTableName.split('.');
 
     const commands = [];
 
@@ -55,21 +59,27 @@ function toPostgreSQL({model, orderedDependencies}) {
                      .concat(_.map(table.dependencies, generateDependency))
                      .join(', ');
 
-    commands.push(`CREATE TABLE ${schemaName}.${tableName} (${columns});`);
+    commands.push(createTable(`${schemaName}.${tableName}`, columns));
 
     return commands;
 
-    function generateAttribute({name, type}) {
-      return `${name} ${type.length > 0 ? formatType(type[0]) : 'text'}`;
+    function generateAttribute({name, optional, type}) {
+      const parts = [name, type.length > 0 ? formatType(type[0]) : 'text'];
+
+      if (optional.length === 0) parts.push('NOT NULL');
+
+      return parts.join(' ');
 
       function formatType(type) {
-        console.log({type});
         if (typeof type === 'string') return type;
 
         if (type.type === 'Set') {
-          commands.push(`CREATE TYPE ${schemaName}.${tableName}_${name}_enum (${type.values.map(value => "'" + value + "'").join(',')});`);
+          // These names are guaranteed to be unique, but maybe we want a way to de-duplicate equivalent types?
+          commands.push(createType(`${schemaName}.${tableName}_${name}_enum`, type.values));
+
           return `${tableName}_${name}_enum NOT NULL DEFAULT '${type.values[0]}'`;
         }
+        else throw new Error(`${type} not implemented!`);
       }
     }
 
@@ -87,17 +97,17 @@ function toPostgreSQL({model, orderedDependencies}) {
   }
 }
 
-function orderDependencies(model) {
+function orderTables(model) {
   const {schemas} = model;
   const ordered = [];
   const schemaMap = {};
 
   model.schemaMap = schemaMap;
 
-  const orderedDependencies = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*');
-  console.log({orderedDependencies});
+  const orderedTables = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*');
+  console.log({orderedTables});
 
-  return {model, orderedDependencies};
+  return {model, orderedTables};
 
   function topologicalSort(links) {
     return tsort(links).sort(); // Note: `tsort` only sets up the graph, must call `sort` to get the ordering. I had initially begun to implement my own topological sort, as `model` already contains a graph of the dependencies, but abandoned it due to finding this library function. If performance is ever a concern, there is a bit of optimization that can be done here.
