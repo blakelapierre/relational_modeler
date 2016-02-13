@@ -3,7 +3,7 @@ personal {!id, inserted timestamp} {
     stock {price numeric}
       -> physical_item
 
-    physical_item {location, dimension}
+    physical_item {location point, dimension}
       -> item
 
     item {name, description?, type {'generic', 'food', 'tool'}}
