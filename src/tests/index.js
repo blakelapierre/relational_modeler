@@ -49,7 +49,6 @@ function orderTables(model) {
   model.schemaMap = schemaMap;
 
   const orderedTables = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*');
-  console.log({orderedTables});
 
   return {model, orderedTables};
 
