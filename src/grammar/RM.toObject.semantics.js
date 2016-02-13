@@ -7,20 +7,20 @@ export default {
     return element.toObject();
   },
 
-  Model (name, schemas) {
-    return join({name, schemas});
+  Model (name, commonAttributes, schemas) {
+    return join({name, commonAttributes: commonAttributes.toObject()[0] || [], schemas});
   },
 
-  Schema (name, tables) {
-    return join({name, tables});
+  Schema (name, commonAttributes, tables) {
+    return join({name, commonAttributes: commonAttributes.toObject()[0] || [], tables});
   },
 
   Table (name, attributes, dependencies) {
     return join({name, attributes: attributes.toObject()[0], dependencies});
   },
 
-  Attribute (name, optional, type) {
-    return join({name, optional: optional.toObject()[0] === '?', type});
+  Attribute (primaryKey, name, optional, type) {
+    return join({name, primaryKey: primaryKey.toObject()[0] === '!', optional: optional.toObject()[0] === '?', type: type.toObject()[0] || defaultType});
   },
 
   Type (type) {

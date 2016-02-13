@@ -5,8 +5,9 @@ RM {
   Table = name AttributeList? Dependency*
 
   AttributeList = Contained<ListOf<Attribute, ",">>
-  Attribute = name Optional? Type?
+  Attribute = PrimaryKey? name Optional? Type?
 
+  PrimaryKey = "!"
   Optional = "?"
 
   Type = List

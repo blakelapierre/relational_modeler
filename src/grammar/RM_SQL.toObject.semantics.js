@@ -21,8 +21,8 @@ export default {
     return join({name, attributes: attributes.toObject()[0], dependencies});
   },
 
-  Attribute (name, optional, type) {
-    return join({name, optional: optional.toObject()[0] === '?', type: type.toObject()[0] || defaultType});
+  Attribute (primaryKey, name, optional, type) {
+    return join({name, primaryKey: primaryKey.toObject()[0] === '!', optional: optional.toObject()[0] === '?', type: type.toObject()[0] || defaultType});
   },
 
   Type (type) {

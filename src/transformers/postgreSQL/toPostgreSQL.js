@@ -40,10 +40,12 @@ console.log({map: schemaMap[schemaName]});
 
     return commands;
 
-    function generateAttribute({name, optional, type}) {
+    function generateAttribute({name, primaryKey, optional, type}) {
       const parts = [name, type ? formatType(type) : 'text'];
 
-      if (!optional) parts.push('NOT NULL');
+      if (primaryKey && optional) throw new Error(`${schemaName}.${tableName}.${name} cannot be both a primary key and optional!`); // maybe outlaw this in the grammar?
+      if (primaryKey) parts.push('PRIMARY KEY');
+      else if (!optional) parts.push('NOT NULL');
 
       return parts.join(' ');
 

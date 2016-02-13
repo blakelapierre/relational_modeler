@@ -1,4 +1,4 @@
-personal {id bigserial, inserted timestamp} {
+personal {!id bigserial, inserted timestamp} {
   inventory {inventory_specific_id} {
     stock {price}
       -> physical_item
