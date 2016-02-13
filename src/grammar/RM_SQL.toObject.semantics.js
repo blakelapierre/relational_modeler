@@ -41,6 +41,22 @@ export default {
     return join({type: 'Set', values});
   },
 
+  Numeric (numeric, parameters) {
+    return parameters.toObject()[0] || {type: 'Numeric'};
+  },
+
+  NumericParameters (precision, optionalScale) {
+    return join({type: 'Numeric', precision, scale: optionalScale.toObject()[0]});
+  },
+
+  OptionalScale (comma,  scale) {
+    return scale;
+  },
+
+  number (digits) {
+    return parseInt(digits.toObject().join(''), 10);
+  },
+
   Dependency (preArity, glyph, postArity, reference) {
     return join({
       preArity: $ => $(preArity)[0] || 1,

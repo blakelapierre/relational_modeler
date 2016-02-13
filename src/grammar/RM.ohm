@@ -28,6 +28,7 @@ RM {
 
   Contained<element> = IContained<"{", element, "}">
   SquareContained<element> = IContained<"[", element, "]">
+  RoundContained<element> = IContained<"(", element, ")">
 
   IContained<open, element, close> = open element close
 
@@ -49,4 +50,13 @@ RM_SQL <: RM {
           | "bigserial"
           | "text"
           | "timestamp"
+          | Numeric
+
+  Numeric = numeric RoundContained<NumericParameters>?
+  NumericParameters = Precision OptionalScale?
+  Precision = number
+  OptionalScale = "," number
+
+  numeric = "numeric"
+  number = digit+
 }

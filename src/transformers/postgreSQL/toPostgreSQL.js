@@ -60,9 +60,17 @@ export default function toPostgreSQL({model, orderedTables}) {
           const newTypeName = `${tableName}_${name}_enum`;
           commands.push(createType(`${schemaName}.${newTypeName}`, type.values));
 
-          return `${newTypeName} NOT NULL DEFAULT '${type.values[0]}'`;
+          return `${newTypeName} DEFAULT '${type.values[0]}'`;
         }
-        else throw new Error(`${type} not implemented!`);
+        else if (type.type === 'Numeric') {
+          const parameters = [];
+          if (type.precision !== undefined) parameters.push(type.precision);
+          if (type.scale !== undefined) paramters.push(type.scale);
+
+          if (parameters.length > 0) return `NUMERIC(${parameters.join(',')})`;
+          return `NUMERIC`;
+        }
+        else throw new Error(`${type.type} not implemented!`);
       }
     }
 
