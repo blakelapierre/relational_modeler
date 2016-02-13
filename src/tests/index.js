@@ -11,11 +11,11 @@ import {createSchema, createTable, createType} from '../grammar/sql/postgreSQL.j
 
 const {grammar, semantics} = loadGrammarWithSemantics('RM_SQL', ['toObject'], './grammar/RM.ohm');
 
-const result = run('./tests/samples/personal.model', grammar, semantics, 'toObject');
+const model = run('./tests/samples/personal.model', grammar, semantics, 'toObject');
 
-log(util.inspect(result, false, null));
+log(util.inspect(model, false, null));
 
-log(toPostgreSQL(orderTables(result)).join('\n'));
+log(toPostgreSQL(orderTables(model)).join('\n'));
 
 function loadGrammarWithSemantics(grammarName, semanticNames = [], fileName = `./grammar/${grammarName}.ohm`) {
   const grammar = ohm.grammars(fs.readFileSync(fileName))[grammarName],
@@ -38,6 +38,36 @@ function run(modelFile, grammar, semantics, operation) {
   }
   else {
     console.error(match.message);
+  }
+}
+
+function orderTables(model) {
+  const {schemas} = model;
+  const ordered = [];
+  const schemaMap = {};
+
+  model.schemaMap = schemaMap;
+
+  const orderedTables = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*');
+  console.log({orderedTables});
+
+  return {model, orderedTables};
+
+  function topologicalSort(links) {
+    return tsort(links).sort(); // Note: `tsort` only sets up the graph, must call `sort` to get the ordering. I had initially begun to implement my own topological sort, as `model` already contains a graph of the dependencies, but abandoned it due to finding this library function. If performance is ever a concern, there is a bit of optimization that can be done here.
+  }
+
+  function analyzeSchema({name, tables}) {
+    let schemaName = name;
+    schemaMap[schemaName] = {};
+    return _.flatMap(_.map(tables, gTables));
+
+    function gTables(table) {
+      const {name, dependencies} = table;
+      schemaMap[schemaName][name] = table;
+      if (dependencies.length === 0) return [[`${schemaName}.${name}`, `*`]];
+      return _.map(dependencies, ({reference: {schema, table}}) => [`${schemaName}.${name}`, `${schema || schemaName}.${table}`]);
+    }
   }
 }
 
@@ -84,7 +114,6 @@ function toPostgreSQL({model, orderedTables}) {
     }
 
     function generateDependency({preArity, postArity, reference: {schema, table}}) {
-      console.log(schemaName, schema, table);
       const id = (schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_id`,
             references = `${schema || schemaName}.${table}`;
 
@@ -93,36 +122,6 @@ function toPostgreSQL({model, orderedTables}) {
       if (postArity === 1) type += ' UNIQUE';
 
       return `${id} ${type} REFERENCES ${references}`;
-    }
-  }
-}
-
-function orderTables(model) {
-  const {schemas} = model;
-  const ordered = [];
-  const schemaMap = {};
-
-  model.schemaMap = schemaMap;
-
-  const orderedTables = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*');
-  console.log({orderedTables});
-
-  return {model, orderedTables};
-
-  function topologicalSort(links) {
-    return tsort(links).sort(); // Note: `tsort` only sets up the graph, must call `sort` to get the ordering. I had initially begun to implement my own topological sort, as `model` already contains a graph of the dependencies, but abandoned it due to finding this library function. If performance is ever a concern, there is a bit of optimization that can be done here.
-  }
-
-  function analyzeSchema({name, tables}) {
-    let schemaName = name;
-    schemaMap[schemaName] = {};
-    return _.flatMap(_.map(tables, gTables));
-
-    function gTables(table) {
-      const {name, dependencies} = table;
-      schemaMap[schemaName][name] = table;
-      if (dependencies.length === 0) return [[`${schemaName}.${name}`, `*`]];
-      return _.map(dependencies, ({reference: {schema, table}}) => [`${schemaName}.${name}`, `${schema || schemaName}.${table}`]);
     }
   }
 }
