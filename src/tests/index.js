@@ -48,7 +48,7 @@ function orderTables(model) {
 
   model.schemaMap = schemaMap;
 
-  const orderedTables = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*');
+  const orderedTables = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*'); // * represents a "null-link", it is not a real table; it is only used to include all tables (including those with no dependencies) in the array outputted by `topologicalSort`, without having to rewalk the model to determine which tables have no dependencies
 
   return {model, orderedTables};
 
