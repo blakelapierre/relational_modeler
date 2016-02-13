@@ -59,9 +59,9 @@ function orderTables(model) {
   function analyzeSchema({name, tables}) {
     let schemaName = name;
     schemaMap[schemaName] = {};
-    return _.flatMap(_.map(tables, gTables));
+    return _.flatMap(_.map(tables, analyzeTable));
 
-    function gTables(table) {
+    function analyzeTable(table) {
       const {name, dependencies} = table;
       schemaMap[schemaName][name] = table;
       if (dependencies.length === 0) return [[`${schemaName}.${name}`, '*']];
