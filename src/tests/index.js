@@ -5,8 +5,8 @@ import util from 'util';
 
 import ohm from 'ohm-js';
 import _ from 'lodash';
-import tsort from 'tsort';
 
+import orderTables from '../transformers/orderTables';
 import {createSchema, createTable, createType} from '../grammar/sql/postgreSQL.js';
 
 const {grammar, semantics} = loadGrammarWithSemantics('RM_SQL', ['toObject'], './grammar/RM.ohm');
@@ -38,35 +38,6 @@ function run(modelFile, grammar, semantics, operation) {
   }
   else {
     console.error(match.message);
-  }
-}
-
-function orderTables(model) {
-  const {schemas} = model;
-  const ordered = [];
-  const schemaMap = {};
-
-  model.schemaMap = schemaMap;
-
-  const orderedTables = _.reject(topologicalSort(_.flatMap(_.map(schemas, analyzeSchema))).reverse(), v => v === '*'); // * represents a "null-link", it is not a real table; it is only used to include all tables (including those with no dependencies) in the array outputted by `topologicalSort`, without having to rewalk the model to determine which tables have no dependencies
-
-  return {model, orderedTables};
-
-  function topologicalSort(links) {
-    return tsort(links).sort(); // Note: `tsort` only sets up the graph, must call `sort` to get the ordering. I had initially begun to implement my own topological sort, as `model` already contains a graph of the dependencies, but abandoned it due to finding this library function. If performance is ever a concern, there is a bit of optimization that can be done here.
-  }
-
-  function analyzeSchema({name, tables}) {
-    let schemaName = name;
-    schemaMap[schemaName] = {};
-    return _.flatMap(_.map(tables, analyzeTable));
-
-    function analyzeTable(table) {
-      const {name, dependencies} = table;
-      schemaMap[schemaName][name] = table;
-      if (dependencies.length === 0) return [[`${schemaName}.${name}`, '*']];
-      return _.map(dependencies, ({reference: {schema, table}}) => [`${schemaName}.${name}`, `${schema || schemaName}.${table}`]);
-    }
   }
 }
 
