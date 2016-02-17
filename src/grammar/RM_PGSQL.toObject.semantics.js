@@ -3,78 +3,63 @@ const defaultType = 'text',
 
 
 export default {
-  ListOf_some (element, separator, rest) {
-    return [element.toObject()].concat(rest.toObject());
-  },
+  ListOf_some: (element, separator, rest) =>
+    [element.toObject()].concat(rest.toObject()),
 
-  IContained (open, element, close) {
-    return element.toObject();
-  },
+  IContained: (open, element, close) =>
+    element.toObject(),
 
-  Model (name, commonAttributes, schemas) {
-    return join({name, commonAttributes: commonAttributes.toObject()[0] || [], schemas});
-  },
+  Model: (name, commonAttributes, schemas) =>
+    join({name, commonAttributes: commonAttributes.toObject()[0] || [], schemas}),
 
-  Schema (name, commonAttributes, tables) {
-    return join({name, commonAttributes: commonAttributes.toObject()[0] || [], tables});
-  },
+  Schema: (name, commonAttributes, tables) =>
+    join({name, commonAttributes: commonAttributes.toObject()[0] || [], tables}),
 
-  Table (name, attributes, dependencies) {
-    return join({name, attributes: attributes.toObject()[0], dependencies});
-  },
+  Table: (name, attributes, dependencies) =>
+    join({name, attributes: attributes.toObject()[0], dependencies}),
 
-  Attribute (primaryKey, name, optional, type) {
+  Attribute: (primaryKey, name, optional, type) => {
     primaryKey = primaryKey.toObject()[0] === '!';
     type = type.toObject()[0] || (primaryKey ? defaultPrimaryKeyType : defaultType);
     return join({name, primaryKey, optional: optional.toObject()[0] === '?', type});
   },
 
-  Type (type) {
-    return type.toObject();
-  },
+  Type: type =>
+    type.toObject(),
 
-  List (values) {
-    return join({type: 'List', values});
-  },
+  List: values =>
+    join({type: 'List', values}),
 
-  Set (values) {
-    return join({type: 'Set', values});
-  },
+  Set: values =>
+    join({type: 'Set', values}),
 
-  Numeric (numeric, parameters) {
-    return parameters.toObject()[0] || {type: 'Numeric'};
-  },
+  Numeric: (numeric, parameters) =>
+    parameters.toObject()[0] || {type: 'Numeric'},
 
-  NumericParameters (precision, optionalScale) {
-    return join({type: 'Numeric', precision, scale: optionalScale.toObject()[0]});
-  },
+  NumericParameters: (precision, optionalScale) =>
+    join({type: 'Numeric', precision, scale: optionalScale.toObject()[0]}),
 
-  OptionalScale (comma,  scale) {
-    return scale;
-  },
+  OptionalScale: (comma,  scale) =>
+    scale,
 
-  number (digits) {
-    return parseInt(digits.toObject().join(''), 10);
-  },
+  number: digits =>
+    parseInt(digits.toObject().join(''), 10),
 
-  Dependency (preArity, glyph, postArity, reference) {
-    return join({
+  Dependency: (preArity, glyph, postArity, reference) =>
+    join({
       preArity: $ => $(preArity)[0] || 1,
       postArity: $ => $(postArity)[0] || 1,
       reference
-    });
-  },
+    }),
 
-  SchemaTableName (schema, dot, table) {
-    return join({schema, table});
-  },
+  SchemaTableName: (schema, dot, table) =>
+    join({schema, table}),
 
-  TableName (table) {
-    return join({table});
-  },
+  TableName: table =>
+    join({table}),
 
   name (first_character, additional_characters) {
-    return this.interval.contents;
+    return this.interval.contents; // can't use lambda/fat-arrow due to `this`
   }
 };
 
