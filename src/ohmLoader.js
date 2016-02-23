@@ -10,12 +10,13 @@ export function loadGrammarWithSemantics(grammarName, semanticNames = [], fileNa
   return {grammar, semantics};
 
   function addSemanticName(name) {
-    semantics.addOperation(name, require(`./grammar/${grammarName}.${name}.semantics`).default);
+    const s = require(`./grammar/${grammarName}.${name}.semantics`).default;
+    semantics.addOperation(name, s);
   }
 }
 
-export function run(modelFile, grammar, semantics, operation) {
-  const match = grammar.match(fs.readFileSync(modelFile).toString());
+export function run(model, grammar, semantics, operation) {
+  const match = grammar.match(model);
   if (match.succeeded()) {
     const result = semantics(match).toObject();
     return result;
@@ -23,4 +24,8 @@ export function run(modelFile, grammar, semantics, operation) {
   else {
     console.error(match.message);
   }
+}
+
+export function runFromFile(modelFile, grammar, semantics, operation) {
+  return run(fs.readFileSync(modelFile).toString(), grammar, semantics, operation);
 }

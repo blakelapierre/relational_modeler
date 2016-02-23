@@ -1,4 +1,8 @@
 "use strict";
+var $__util__;
+var $__0 = ($__util__ = require("./util"), $__util__ && $__util__.__esModule && $__util__ || {default: $__util__}),
+    join = $__0.join,
+    first = $__0.first;
 var defaultType = 'text',
     defaultPrimaryKeyType = 'bigserial';
 var $__default = {
@@ -11,31 +15,31 @@ var $__default = {
   Model: function(name, commonAttributes, schemas) {
     return join({
       name: name,
-      commonAttributes: commonAttributes.toObject()[0] || [],
+      commonAttributes: first(commonAttributes) || [],
       schemas: schemas
     });
   },
   Schema: function(name, commonAttributes, tables) {
     return join({
       name: name,
-      commonAttributes: commonAttributes.toObject()[0] || [],
+      commonAttributes: first(commonAttributes) || [],
       tables: tables
     });
   },
   Table: function(name, attributes, dependencies) {
     return join({
       name: name,
-      attributes: attributes.toObject()[0],
+      attributes: first(attributes),
       dependencies: dependencies
     });
   },
   Attribute: function(primaryKey, name, optional, type) {
-    primaryKey = primaryKey.toObject()[0] === '!';
-    type = type.toObject()[0] || (primaryKey ? defaultPrimaryKeyType : defaultType);
+    primaryKey = first(primaryKey) === '!';
+    type = first(type) || (primaryKey ? defaultPrimaryKeyType : defaultType);
     return join({
       name: name,
       primaryKey: primaryKey,
-      optional: optional.toObject()[0] === '?',
+      optional: first(optional) === '?',
       type: type
     });
   },
@@ -56,12 +60,8 @@ var $__default = {
   },
   Dependency: function(preArity, glyph, postArity, reference) {
     return join({
-      preArity: function($) {
-        return $(preArity)[0] || 1;
-      },
-      postArity: function($) {
-        return $(postArity)[0] || 1;
-      },
+      preArity: first(preArity) || '*',
+      postArity: first(postArity) || '*',
       reference: reference
     });
   },
@@ -78,17 +78,6 @@ var $__default = {
     return this.interval.contents;
   }
 };
-function join(obj) {
-  for (var key in obj) {
-    if (typeof obj[key] === 'function')
-      obj[key] = obj[key](function(o) {
-        return o.toObject();
-      });
-    else if (obj[key].toObject)
-      obj[key] = obj[key].toObject();
-  }
-  return obj;
-}
 Object.defineProperties(module.exports, {
   default: {get: function() {
       return $__default;

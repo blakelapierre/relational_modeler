@@ -36,8 +36,10 @@ RM {
   first_character = letter | "_"
   additional_character = first_character | alnum
 
-  arity = "*" | "+" | digit+
+  arity = "*" | "+" | number
   dependency_glyph = "->"
+
+  number = digit+
 }
 
 RM_PGSQL <: RM {
@@ -88,5 +90,4 @@ RM_PGSQL <: RM {
   OptionalScale = "," number
 
   numeric = "numeric" | "decimal"
-  number = digit+
 }

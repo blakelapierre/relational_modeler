@@ -1,5 +1,6 @@
 require('./traceur-runtime');
 
+import fs from 'fs';
 import util from 'util';
 
 import _ from 'lodash';
@@ -7,11 +8,14 @@ import _ from 'lodash';
 import orderTables from './transformers/orderTables';
 import toPostgreSQL from './transformers/postgreSQL/toPostgreSQL';
 
-import {loadGrammarWithSemantics, run} from './ohmLoader';
+import {loadGrammarWithSemantics, runFromFile} from './ohmLoader';
 
 const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
 
-const model = run(process.argv[1], grammar, semantics, 'toObject');
+let i = 2;
+if (process.argv[0].endsWith('relational_modeler')) i = 1;
+
+const model = runFromFile(process.argv[i], grammar, semantics, 'toObject');
 
 // log(util.inspect(model, false, null));
 

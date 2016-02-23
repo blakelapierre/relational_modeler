@@ -1,3 +1,5 @@
+import {join, first} from './util';
+
 const defaultType = 'text',
       defaultPrimaryKeyType = 'bigserial';
 
@@ -11,21 +13,21 @@ export default {
   },
 
   Model (name, commonAttributes, schemas) {
-    return join({name, commonAttributes: commonAttributes.toObject()[0] || [], schemas});
+    return join({name, commonAttributes: first(commonAttributes) || [], schemas});
   },
 
   Schema (name, commonAttributes, tables) {
-    return join({name, commonAttributes: commonAttributes.toObject()[0] || [], tables});
+    return join({name, commonAttributes: first(commonAttributes) || [], tables});
   },
 
   Table (name, attributes, dependencies) {
-    return join({name, attributes: attributes.toObject()[0], dependencies});
+    return join({name, attributes: first(attributes), dependencies});
   },
 
   Attribute (primaryKey, name, optional, type) {
-    primaryKey = primaryKey.toObject()[0] === '!';
-    type = type.toObject()[0] || (primaryKey ? defaultPrimaryKeyType : defaultType);
-    return join({name, primaryKey, optional: optional.toObject()[0] === '?', type});
+    primaryKey = first(primaryKey) === '!';
+    type = first(type) || (primaryKey ? defaultPrimaryKeyType : defaultType);
+    return join({name, primaryKey, optional: first(optional) === '?', type});
   },
 
   Type (type) {
@@ -42,8 +44,8 @@ export default {
 
   Dependency (preArity, glyph, postArity, reference) {
     return join({
-      preArity: $ => $(preArity)[0] || 1,
-      postArity: $ => $(postArity)[0] || 1,
+      preArity: first(preArity) || '*',
+      postArity: first(postArity) || '*',
       reference
     });
   },
@@ -60,11 +62,3 @@ export default {
     return this.interval.contents;
   }
 };
-
-function join(obj) {
-  for (let key in obj) {
-    if (typeof obj[key] === 'function') obj[key] = obj[key](o => o.toObject());
-    else if (obj[key].toObject) obj[key] = obj[key].toObject();
-  }
-  return obj;
-}

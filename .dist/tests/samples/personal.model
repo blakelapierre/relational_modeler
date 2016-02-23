@@ -1,10 +1,10 @@
 personal {!id, inserted timestamp} {
   inventory {inventory_specific_id} {
-    stock {price numeric}
+    stock {price numeric(5)}
       -> physical_item
 
     physical_item {location point, dimension}
-      -> item
+      1->1 item
 
     item {name, description?, type {'generic', 'food', 'tool'}}
   }

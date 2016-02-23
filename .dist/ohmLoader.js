@@ -14,11 +14,12 @@ function loadGrammarWithSemantics(grammarName) {
     semantics: semantics
   };
   function addSemanticName(name) {
-    semantics.addOperation(name, require(("./grammar/" + grammarName + "." + name + ".semantics")).default);
+    var s = require(("./grammar/" + grammarName + "." + name + ".semantics")).default;
+    semantics.addOperation(name, s);
   }
 }
-function run(modelFile, grammar, semantics, operation) {
-  var match = grammar.match(fs.readFileSync(modelFile).toString());
+function run(model, grammar, semantics, operation) {
+  var match = grammar.match(model);
   if (match.succeeded()) {
     var result = semantics(match).toObject();
     return result;
@@ -26,12 +27,18 @@ function run(modelFile, grammar, semantics, operation) {
     console.error(match.message);
   }
 }
+function runFromFile(modelFile, grammar, semantics, operation) {
+  return run(fs.readFileSync(modelFile).toString(), grammar, semantics, operation);
+}
 Object.defineProperties(module.exports, {
   loadGrammarWithSemantics: {get: function() {
       return loadGrammarWithSemantics;
     }},
   run: {get: function() {
       return run;
+    }},
+  runFromFile: {get: function() {
+      return runFromFile;
     }},
   __esModule: {value: true}
 });

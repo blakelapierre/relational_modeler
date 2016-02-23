@@ -7,13 +7,13 @@ import _ from 'lodash';
 import orderTables from '../transformers/orderTables';
 import toPostgreSQL from '../transformers/postgreSQL/toPostgreSQL';
 
-import {loadGrammarWithSemantics, run} from '../ohmLoader';
+import {loadGrammarWithSemantics, runFromFile} from '../ohmLoader';
 
 const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
 
-const model = run('./tests/samples/personal.model', grammar, semantics, 'toObject');
+const model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
 
-log(util.inspect(model, false, null));
+// log(util.inspect(model, false, null));
 
 log(toPostgreSQL(orderTables(model)).join('\n'));
 

@@ -11,12 +11,11 @@ var orderTables = ($___46__46__47_transformers_47_orderTables__ = require("../tr
 var toPostgreSQL = ($___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__ = require("../transformers/postgreSQL/toPostgreSQL"), $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__ && $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__.__esModule && $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__ || {default: $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__}).default;
 var $__4 = ($___46__46__47_ohmLoader__ = require("../ohmLoader"), $___46__46__47_ohmLoader__ && $___46__46__47_ohmLoader__.__esModule && $___46__46__47_ohmLoader__ || {default: $___46__46__47_ohmLoader__}),
     loadGrammarWithSemantics = $__4.loadGrammarWithSemantics,
-    run = $__4.run;
+    runFromFile = $__4.runFromFile;
 var $__7 = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm'),
     grammar = $__7.grammar,
     semantics = $__7.semantics;
-var model = run('./tests/samples/personal.model', grammar, semantics, 'toObject');
-log(util.inspect(model, false, null));
+var model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
 log(toPostgreSQL(orderTables(model)).join('\n'));
 function log() {
   for (var args = [],

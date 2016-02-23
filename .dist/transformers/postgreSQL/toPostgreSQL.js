@@ -90,7 +90,7 @@ function toPostgreSQL($__3) {
       var id = (schema === undefined ? '' : ((schema || schemaName) + "_")) + (table + "_id"),
           references = ((schema || schemaName) + "." + table);
       var type = 'bigint NOT NULL';
-      if (postArity === 1)
+      if (preArity === 1 && postArity === 1)
         type += ' UNIQUE';
       return (id + " " + type + " REFERENCES " + references);
     }

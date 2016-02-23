@@ -83,7 +83,7 @@ export default function toPostgreSQL({model, orderedTables}) {
 
       let type = 'bigint NOT NULL';
 
-      if (postArity === 1) type += ' UNIQUE';
+      if (preArity === 1 && postArity === 1) type += ' UNIQUE';
 
       return `${id} ${type} REFERENCES ${references}`;
     }
