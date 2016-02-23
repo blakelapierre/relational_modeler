@@ -8,7 +8,7 @@ export default {
     return [element.toObject()].concat(rest.toObject());
   },
 
-  IContained (open, element, close) {
+  CContained (open, element, close) {
     return element.toObject();
   },
 

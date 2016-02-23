@@ -9,7 +9,7 @@ var $__default = {
   ListOf_some: function(element, separator, rest) {
     return [element.toObject()].concat(rest.toObject());
   },
-  IContained: function(open, element, close) {
+  CContained: function(open, element, close) {
     return element.toObject();
   },
   Model: function(name, commonAttributes, schemas) {

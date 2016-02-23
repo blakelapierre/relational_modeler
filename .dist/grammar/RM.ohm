@@ -16,7 +16,7 @@ RM {
   List = SquareContained<ListOf<Value, ",">>
   Set = Contained<ListOf<Value, ",">>
   Value = digit+
-        | IContained<"'", name, "'">
+        | CContained<"'", name, "'">
 
   Dependency = arity? dependency_glyph arity? Reference
 
@@ -26,11 +26,11 @@ RM {
   SchemaTableName = name "." name
   TableName = name
 
-  Contained<element> = IContained<"{", element, "}">
-  SquareContained<element> = IContained<"[", element, "]">
-  RoundContained<element> = IContained<"(", element, ")">
+  Contained<element> = CContained<"{", element, "}">
+  SquareContained<element> = CContained<"[", element, "]">
+  RoundContained<element> = CContained<"(", element, ")">
 
-  IContained<open, element, close> = open element close
+  CContained<open, element, close> = open element close
 
   name = first_character additional_character*
   first_character = letter | "_"

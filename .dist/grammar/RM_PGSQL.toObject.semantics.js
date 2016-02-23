@@ -5,8 +5,6 @@ var $__0 = ($__util__ = require("./util"), $__util__ && $__util__.__esModule && 
     join = $__0.join,
     first = $__0.first;
 var RMToObjectSemantics = ($__RM_46_toObject_46_semantics__ = require("./RM.toObject.semantics"), $__RM_46_toObject_46_semantics__ && $__RM_46_toObject_46_semantics__.__esModule && $__RM_46_toObject_46_semantics__ || {default: $__RM_46_toObject_46_semantics__}).default;
-var defaultType = 'text',
-    defaultPrimaryKeyType = 'bigserial';
 var $__default = Object.assign({
   Numeric: function(numeric, parameters) {
     return parameters.toObject()[0] || {type: 'Numeric'};
