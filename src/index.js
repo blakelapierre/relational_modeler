@@ -15,6 +15,8 @@ const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], 
 let i = 2;
 if (process.argv[0].endsWith('relational_modeler')) i = 1;
 
+console.log(process.argv);
+
 const model = runFromFile(process.argv[i], grammar, semantics, 'toObject');
 
 // log(util.inspect(model, false, null));
