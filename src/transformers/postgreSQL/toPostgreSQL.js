@@ -15,14 +15,12 @@ export default function toPostgreSQL({model, orderedTables}) {
 
   function addTableMap(schema) {
     schema.tableMap = _.transform(schema.tables, (map, table) => map[table.name] = table, {});
-    console.log(schema);
     return schema;
   }
 
   // This should be broken out into a separate model, but we want the schema map and that is here!
   function resolveDependencies(schemas, schemaMap) {
     schemas.forEach(({tables}) => tables.forEach(table => table.primaryKeys = _.filter(table.attributes, a => a.primaryKey)));
-    console.log(JSON.stringify(schemaMap.sr28.tableMap));
     schemas.forEach(({name, tables}) => {
       return tables.forEach(table => {
         const {name: tableName, dependencies} = table;
@@ -49,7 +47,6 @@ export default function toPostgreSQL({model, orderedTables}) {
           {commonAttributes: schemaAttributes} = schema,
           table = schema.tableMap[tableName],
           attributes = _.flatMap([modelAttributes, schemaAttributes, table.attributes]),
-          // primaryKeys = _.filter(attributes, a => a.primaryKey),
           primaryKeys = table.primaryKeys,
           columns = _.map(attributes, generateAttribute)
                      .concat(_.map(table.dependencies, generateDependency))
@@ -105,7 +102,6 @@ export default function toPostgreSQL({model, orderedTables}) {
     }
 
     function generateDependency({preArity, postArity, reference: {schema, table, attribute}}) {
-      console.log('>', schema, table, attribute);
       const id = (schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_${(attribute || {name: 'id'}).name}`,
             references = `${schema || schemaName}.${table}`;
 

@@ -89,9 +89,9 @@ usda {
 
   Sources_of_Data_Link {
     !NDB_No,
-    !Nutr_No,
-    !DataSrc_ID
-  }
+    !Nutr_No
+  } ->
+    Sources_of_Data
 
   Sources_of_Data {
     !DataSrc_ID,
