@@ -9,11 +9,28 @@ export default function toPostgreSQL({model, orderedTables}) {
 
   model.schemaMap = schemaMap; // mutation of passed object!
 
+  resolveDependencies(schemas, schemaMap);
+
   return createSchemas(schemas, schemaMap, orderedTables);
 
   function addTableMap(schema) {
     schema.tableMap = _.transform(schema.tables, (map, table) => map[table.name] = table, {});
+    console.log(schema);
     return schema;
+  }
+
+  // This should be broken out into a separate model, but we want the schema map and that is here!
+  function resolveDependencies(schemas, schemaMap) {
+    schemas.forEach(({tables}) => tables.forEach(table => table.primaryKeys = _.filter(table.attributes, a => a.primaryKey)));
+    console.log(JSON.stringify(schemaMap.sr28.tableMap));
+    schemas.forEach(({name, tables}) => {
+      return tables.forEach(table => {
+        const {name: tableName, dependencies} = table;
+        return dependencies.forEach(({reference}) => {
+          reference.attribute = schemaMap[reference.schema || name].tableMap[reference.table].primaryKeys[0];
+        });
+      });
+    });
   }
 
   function createSchemas(schemas, schemaMap, orderedTables) {
@@ -32,11 +49,17 @@ export default function toPostgreSQL({model, orderedTables}) {
           {commonAttributes: schemaAttributes} = schema,
           table = schema.tableMap[tableName],
           attributes = _.flatMap([modelAttributes, schemaAttributes, table.attributes]),
+          // primaryKeys = _.filter(attributes, a => a.primaryKey),
+          primaryKeys = table.primaryKeys,
           columns = _.map(attributes, generateAttribute)
                      .concat(_.map(table.dependencies, generateDependency))
                      .join(', ');
 
-    commands.push(createTable(`${schemaName}.${tableName}`, columns));
+    const constraints = [];
+
+    if (primaryKeys.length > 0) constraints.push(`PRIMARY KEY (${primaryKeys.map(a => a.name)})`);
+
+    commands.push(createTable(`${schemaName}.${tableName}`, columns, constraints));
 
     return commands;
 
@@ -44,8 +67,8 @@ export default function toPostgreSQL({model, orderedTables}) {
       const parts = [name, type ? formatType(type) : 'text'];
 
       if (primaryKey && optional) throw new Error(`${schemaName}.${tableName}.${name} cannot be both a primary key and optional!`); // maybe outlaw this in the grammar?
-      if (primaryKey) parts.push('PRIMARY KEY');
-      else if (!optional) parts.push('NOT NULL');
+
+      if (!primaryKey && !optional) parts.push('NOT NULL');
 
       return parts.join(' ');
 
@@ -73,15 +96,23 @@ export default function toPostgreSQL({model, orderedTables}) {
         else if (type.type === 'Blob') {
           return `BYTEA`;
         }
+        else if (type.type === 'VarChar') {
+          if (type.length !== undefined) return `VARCHAR(${type.length})`;
+          return `VARCHAR`;
+        }
         else throw new Error(`${type.type} not implemented!`);
       }
     }
 
-    function generateDependency({preArity, postArity, reference: {schema, table}}) {
-      const id = (schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_id`,
+    function generateDependency({preArity, postArity, reference: {schema, table, attribute}}) {
+      console.log('>', schema, table, attribute);
+      const id = (schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_${(attribute || {name: 'id'}).name}`,
             references = `${schema || schemaName}.${table}`;
 
-      let type = 'bigint NOT NULL';
+      let type = (attribute || {type: 'bigint'}).type;
+
+      if (typeof type !== 'string') type = type.type;
+      type = `${type} NOT NULL`;
 
       if (preArity === 1 && postArity === 1) type += ' UNIQUE';
 
@@ -89,3 +120,12 @@ export default function toPostgreSQL({model, orderedTables}) {
     }
   }
 }
+
+export function resolveDependencies({schemas}) {
+  schemas.forEach(({tables}) => {
+
+  });
+}
+
+
+// get primaryKeys() { return _.filter(attributes, a => a.primaryKey); }

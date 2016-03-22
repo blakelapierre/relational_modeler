@@ -12,6 +12,8 @@ export default Object.assign({
 
   OptionalScale: (comma,  scale) => scale,
 
-  number: digits => parseInt(digits.toObject().join(''), 10)
+  number: digits => parseInt(digits.toObject().join(''), 10),
+
+  VarChar: (varchar, length) => join({type: 'VarChar', length})
 
 }, RMToObjectSemantics);

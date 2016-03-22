@@ -11,7 +11,8 @@ import {loadGrammarWithSemantics, runFromFile} from '../ohmLoader';
 
 const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
 
-const model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
+// const model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
+const model = runFromFile('./tests/samples/usda.food.model', grammar, semantics, 'toObject');
 
 // log(util.inspect(model, false, null));
 

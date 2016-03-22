@@ -83,6 +83,7 @@ RM_PGSQL <: RM {
           | "tstzrange"
           | "daterange"
           | Numeric
+          | VarChar
 
   Numeric = numeric RoundContained<NumericParameters>?
   NumericParameters = Precision OptionalScale?
@@ -90,4 +91,6 @@ RM_PGSQL <: RM {
   OptionalScale = "," number
 
   numeric = "numeric" | "decimal"
+
+  VarChar = "varchar" RoundContained<number>?
 }
