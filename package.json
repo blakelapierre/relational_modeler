@@ -3,9 +3,6 @@
   "version": "0.0.12",
   "description": "",
   "main": ".dist/index.js",
-  "bin": {
-    "relational_modeler": "./bin/relational_modeler"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
