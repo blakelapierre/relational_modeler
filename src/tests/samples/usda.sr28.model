@@ -94,15 +94,15 @@ usda {
     Sources_of_Data
 
   Sources_of_Data {
-    !DataSrc_ID,
-    Authors,
+    !DataSrc_ID text,
+    Authors?,
     Title,
-    Year,
-    Journal,
-    Vol_City,
-    Issue_State,
-    Start_Page,
-    End_Page
+    Year?,
+    Journal?,
+    Vol_City?,
+    Issue_State?,
+    Start_Page?,
+    End_Page?
   }
  }
 }

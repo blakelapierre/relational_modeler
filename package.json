@@ -2,7 +2,7 @@
   "name": "relational_modeler",
   "version": "0.0.9",
   "description": "",
-  "main": "index.js",
+  "main": ".dist/index.js",
   "bin": {
     "relational_modeler": "./bin/relational_modeler"
   },

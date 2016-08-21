@@ -12,11 +12,11 @@ import {loadGrammarWithSemantics, runFromFile} from '../ohmLoader';
 const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
 
 // const model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
-const model = runFromFile('./tests/samples/usda.food.model', grammar, semantics, 'toObject');
+const model = runFromFile('./tests/samples/usda.sr28.model', grammar, semantics, 'toObject');
 
 // log(util.inspect(model, false, null));
 
-log(toPostgreSQL(orderTables(model)).join('\n'));
+log(toPostgreSQL(orderTables(model)).schema.join('\n'));
 
 function log(...args) {
   console.log.apply(console, args.map(transformArg));

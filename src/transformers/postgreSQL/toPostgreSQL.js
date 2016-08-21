@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import {createSchema, createTable, createType} from './sql';
+import {createDatabase, createSchema, createTable, createType} from './sql';
 
 export default function toPostgreSQL({model, orderedTables}) {
   const {commonAttributes: modelAttributes, schemas} = model;
@@ -11,7 +11,10 @@ export default function toPostgreSQL({model, orderedTables}) {
 
   resolveDependencies(schemas, schemaMap);
 
-  return createSchemas(schemas, schemaMap, orderedTables);
+  return {
+    schema: [createDatabase(model.name)].concat(createSchemas(schemas, schemaMap, orderedTables)),
+    imports: createImports(orderedTables)
+  };
 
   function addTableMap(schema) {
     schema.tableMap = _.transform(schema.tables, (map, table) => map[table.name] = table, {});
@@ -36,6 +39,26 @@ export default function toPostgreSQL({model, orderedTables}) {
       _.map(_.keys(schemaMap), createSchema), // Produce all schemas first
       _.flatMap(orderedTables, processTable)
     );
+  }
+
+  function createImports(orderedTables, extension = '.txt') {
+    return orderedTables.map(qualifiedTableName => run(copy(qualifiedTableName), fileName(qualifiedTableName)));
+
+    function run(command, file) {
+      return `run "${command}" "${file}"`;
+    }
+
+    function copy(qualifiedTableName, delimiter = '^', quote = '~') {
+      return `BEGIN; COPY ${qualifiedTableName} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}'; COMMIT;`;
+    }
+
+    function fileName(name) {
+      let [schemaName, tableName] = name.split('.');
+
+      tableName = tableName || schemaName;
+
+      return `"${tableName}${extension}"`;
+    }
   }
 
   function processTable(qualifiedTableName) {
