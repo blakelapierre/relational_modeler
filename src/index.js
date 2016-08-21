@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 require('./traceur-runtime');
 
 import fs from 'fs';
