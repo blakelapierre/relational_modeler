@@ -1,33 +1,37 @@
-"use strict";
-var $__util__,
-    $__RM_46_toObject_46_semantics__;
-var $__0 = ($__util__ = require("./util"), $__util__ && $__util__.__esModule && $__util__ || {default: $__util__}),
-    join = $__0.join,
-    first = $__0.first;
-var RMToObjectSemantics = ($__RM_46_toObject_46_semantics__ = require("./RM.toObject.semantics"), $__RM_46_toObject_46_semantics__ && $__RM_46_toObject_46_semantics__.__esModule && $__RM_46_toObject_46_semantics__ || {default: $__RM_46_toObject_46_semantics__}).default;
-var $__default = Object.assign({
-  Numeric: function(numeric, parameters) {
-    return parameters.toObject()[0] || {type: 'Numeric'};
-  },
-  NumericParameters: function(precision, optionalScale) {
-    return join({
-      type: 'Numeric',
-      precision: precision,
-      scale: first(optionalScale)
-    });
-  },
-  OptionalScale: function(comma, scale) {
-    return scale;
-  },
-  number: function(digits) {
-    return parseInt(digits.toObject().join(''), 10);
-  }
-}, RMToObjectSemantics);
-Object.defineProperties(module.exports, {
-  default: {get: function() {
-      return $__default;
-    }},
-  __esModule: {value: true}
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
 });
 
-//# sourceMappingURL=RM_PGSQL.toObject.semantics.js.map
+var _util = require('./util');
+
+var _RMToObject = require('./RM.toObject.semantics');
+
+var _RMToObject2 = _interopRequireDefault(_RMToObject);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = Object.assign({
+
+  Numeric: function Numeric(numeric, parameters) {
+    return parameters.toObject()[0] || { type: 'Numeric' };
+  },
+
+  NumericParameters: function NumericParameters(precision, optionalScale) {
+    return (0, _util.join)({ type: 'Numeric', precision: precision, scale: (0, _util.first)(optionalScale) });
+  },
+
+  OptionalScale: function OptionalScale(comma, scale) {
+    return scale;
+  },
+
+  number: function number(digits) {
+    return parseInt(digits.toObject().join(''), 10);
+  },
+
+  VarChar: function VarChar(varchar, length) {
+    return (0, _util.join)({ type: 'VarChar', length: length });
+  }
+
+}, _RMToObject2.default);

@@ -1,44 +1,53 @@
-"use strict";
-var $__fs__,
-    $__util__,
-    $__lodash__,
-    $__transformers_47_orderTables__,
-    $__transformers_47_postgreSQL_47_toPostgreSQL__,
-    $__ohmLoader__;
-require('./traceur-runtime');
-var fs = ($__fs__ = require("fs"), $__fs__ && $__fs__.__esModule && $__fs__ || {default: $__fs__}).default;
-var util = ($__util__ = require("util"), $__util__ && $__util__.__esModule && $__util__ || {default: $__util__}).default;
-var _ = ($__lodash__ = require("lodash"), $__lodash__ && $__lodash__.__esModule && $__lodash__ || {default: $__lodash__}).default;
-var orderTables = ($__transformers_47_orderTables__ = require("./transformers/orderTables"), $__transformers_47_orderTables__ && $__transformers_47_orderTables__.__esModule && $__transformers_47_orderTables__ || {default: $__transformers_47_orderTables__}).default;
-var toPostgreSQL = ($__transformers_47_postgreSQL_47_toPostgreSQL__ = require("./transformers/postgreSQL/toPostgreSQL"), $__transformers_47_postgreSQL_47_toPostgreSQL__ && $__transformers_47_postgreSQL_47_toPostgreSQL__.__esModule && $__transformers_47_postgreSQL_47_toPostgreSQL__ || {default: $__transformers_47_postgreSQL_47_toPostgreSQL__}).default;
-var $__5 = ($__ohmLoader__ = require("./ohmLoader"), $__ohmLoader__ && $__ohmLoader__.__esModule && $__ohmLoader__ || {default: $__ohmLoader__}),
-    loadGrammarWithSemantics = $__5.loadGrammarWithSemantics,
-    runFromFile = $__5.runFromFile;
-var $__8 = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm'),
-    grammar = $__8.grammar,
-    semantics = $__8.semantics;
-var i = 2;
-if (process.argv[0].endsWith('relational_modeler'))
-  i = 1;
-console.log(process.argv);
-var model = runFromFile(process.argv[i], grammar, semantics, 'toObject');
-log(toPostgreSQL(orderTables(model)).join('\n'));
-function log() {
-  for (var args = [],
-      $__7 = 0; $__7 < arguments.length; $__7++)
-    args[$__7] = arguments[$__7];
-  console.log.apply(console, args.map(transformArg));
-  function transformArg(arg) {
-    switch ((typeof arg === 'undefined' ? 'undefined' : $traceurRuntime.typeof(arg))) {
-      case 'object':
-        return util.inspect(arg, {
-          showHidden: true,
-          depth: null
-        });
-      default:
-        return arg;
-    }
-  }
-}
+'use strict';
 
-//# sourceMappingURL=index.js.map
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+var _util = require('util');
+
+var _util2 = _interopRequireDefault(_util);
+
+var _orderTables = require('./transformers/orderTables');
+
+var _orderTables2 = _interopRequireDefault(_orderTables);
+
+var _toPostgreSQL2 = require('./transformers/postgreSQL/toPostgreSQL');
+
+var _toPostgreSQL3 = _interopRequireDefault(_toPostgreSQL2);
+
+var _ohmLoader = require('./ohmLoader');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+require('./traceur-runtime');
+
+var _loadGrammarWithSeman = (0, _ohmLoader.loadGrammarWithSemantics)('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
+
+var grammar = _loadGrammarWithSeman.grammar;
+var semantics = _loadGrammarWithSeman.semantics;
+
+
+var i = 2;
+if (process.argv[0].endsWith('relational_modeler')) i = 1;
+
+var model = (0, _ohmLoader.runFromFile)('./tests/samples/usda.sr28.model', grammar, semantics, 'toObject');
+
+var _toPostgreSQL = (0, _toPostgreSQL3.default)((0, _orderTables2.default)(model));
+
+var schema = _toPostgreSQL.schema;
+var imports = _toPostgreSQL.imports;
+
+
+var defaultName = process.argv[i].split('.')[0].split(/[\\/]/).pop(),
+    //http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript#comment29942319_15270931
+schemaFileName = process.argv[i + 1] || defaultName + '.sql',
+    importsFileName = process.argv[i + 2] || defaultName + '.import';
+
+write(schemaFileName, schema.join('\n') + '\n');
+write(importsFileName, imports.join('\n') + '\n');
+
+function write(fileName, content) {
+  console.log('writing', fileName);
+  _fs2.default.writeFileSync(fileName, content);
+}

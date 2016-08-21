@@ -1,38 +1,55 @@
-"use strict";
-var $__util__,
-    $__lodash__,
-    $___46__46__47_transformers_47_orderTables__,
-    $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__,
-    $___46__46__47_ohmLoader__;
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var _util = require('util');
+
+var _util2 = _interopRequireDefault(_util);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _orderTables = require('../transformers/orderTables');
+
+var _orderTables2 = _interopRequireDefault(_orderTables);
+
+var _toPostgreSQL = require('../transformers/postgreSQL/toPostgreSQL');
+
+var _toPostgreSQL2 = _interopRequireDefault(_toPostgreSQL);
+
+var _ohmLoader = require('../ohmLoader');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 require('../traceur-runtime');
-var util = ($__util__ = require("util"), $__util__ && $__util__.__esModule && $__util__ || {default: $__util__}).default;
-var _ = ($__lodash__ = require("lodash"), $__lodash__ && $__lodash__.__esModule && $__lodash__ || {default: $__lodash__}).default;
-var orderTables = ($___46__46__47_transformers_47_orderTables__ = require("../transformers/orderTables"), $___46__46__47_transformers_47_orderTables__ && $___46__46__47_transformers_47_orderTables__.__esModule && $___46__46__47_transformers_47_orderTables__ || {default: $___46__46__47_transformers_47_orderTables__}).default;
-var toPostgreSQL = ($___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__ = require("../transformers/postgreSQL/toPostgreSQL"), $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__ && $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__.__esModule && $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__ || {default: $___46__46__47_transformers_47_postgreSQL_47_toPostgreSQL__}).default;
-var $__4 = ($___46__46__47_ohmLoader__ = require("../ohmLoader"), $___46__46__47_ohmLoader__ && $___46__46__47_ohmLoader__.__esModule && $___46__46__47_ohmLoader__ || {default: $___46__46__47_ohmLoader__}),
-    loadGrammarWithSemantics = $__4.loadGrammarWithSemantics,
-    runFromFile = $__4.runFromFile;
-var $__7 = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm'),
-    grammar = $__7.grammar,
-    semantics = $__7.semantics;
-var model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
-log(toPostgreSQL(orderTables(model)).join('\n'));
+
+var _loadGrammarWithSeman = (0, _ohmLoader.loadGrammarWithSemantics)('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
+
+var grammar = _loadGrammarWithSeman.grammar;
+var semantics = _loadGrammarWithSeman.semantics;
+
+// const model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
+
+var model = (0, _ohmLoader.runFromFile)('./tests/samples/usda.sr28.model', grammar, semantics, 'toObject');
+
+// log(util.inspect(model, false, null));
+
+log((0, _toPostgreSQL2.default)((0, _orderTables2.default)(model)).schema.join('\n'));
+
 function log() {
-  for (var args = [],
-      $__6 = 0; $__6 < arguments.length; $__6++)
-    args[$__6] = arguments[$__6];
+  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
   console.log.apply(console, args.map(transformArg));
+
   function transformArg(arg) {
-    switch ((typeof arg === 'undefined' ? 'undefined' : $traceurRuntime.typeof(arg))) {
+    switch (typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) {
       case 'object':
-        return util.inspect(arg, {
-          showHidden: true,
-          depth: null
-        });
+        return _util2.default.inspect(arg, { showHidden: true, depth: null });
       default:
         return arg;
     }
   }
 }
-
-//# sourceMappingURL=index.js.map

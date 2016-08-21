@@ -1,0 +1,108 @@
+usda {
+ sr28 {
+  Food_Description {
+    !NDB_No,
+    Long_Desc,
+    Short_Desc,
+    ComName,
+    ManufacName,
+    Survey,
+    Ref_desc,
+    SciName,
+    N_Factor,
+    Pro_Factor,
+    Fat_Factor,
+    CHO_Factor
+  } -> Food_Group_Description
+
+  Food_Group_Description {
+    !FdGrp_Cd,
+    FdGrp_Desc
+  }
+
+  LanguaL_Factor {
+    NDB_No,
+    !Factor_Code
+  }
+
+  LanguaL_Factors_Description {
+    Description
+  } -> LanguaL_Factor
+
+  Nutrient_Data {
+    !NDB_No,
+    !Nutr_No,
+    Nutr_Val numeric(10,3),
+    Num_Data_Pts numeric(5),
+    Std_Error numeric(8,3),
+    Ref_NDB_No,
+    Add_Nutr_Mark,
+    Num_Studies numeric(2),
+    Min numeric(10,3),
+    Max numeric(10,3),
+    DF numeric(4),
+    Low_EB numeric(10,3),
+    UpEB numeric(10,3),
+    Stat_cmt,
+    AddMod_Date,
+    CC
+  } ->
+    Source_Code
+    Data_Derivation_Code
+
+  Nutrient_Definition {
+    !Nutr_No,
+    Units,
+    Tagname,
+    NutrDesc,
+    Num_Dec,
+    SR_Order numeric(6)
+  }
+
+  Source_Code {
+    !Src_Cd varchar(2),
+    SrcCd_Desc
+  }
+
+  Data_Derivation_Code {
+    !Deriv_Cd,
+    Deriv_Desc
+  }
+
+  Weight {
+    !NDB_No,
+    !Seq,
+    Amount numeric(5,3),
+    Msre_Desc,
+    Gm_Wgt numeric(7,1),
+    Num_Data_Pts numeric(3),
+    Std_Dev numeric(7,3)
+  }
+
+  Footnote {
+    NDB_No,
+    Footnt_No,
+    Footnt_Typ,
+    Nutr_No,
+    Footnt_Txt
+  }
+
+  Sources_of_Data_Link {
+    !NDB_No,
+    !Nutr_No
+  } ->
+    Sources_of_Data
+
+  Sources_of_Data {
+    !DataSrc_ID text,
+    Authors?,
+    Title,
+    Year?,
+    Journal?,
+    Vol_City?,
+    Issue_State?,
+    Start_Page?,
+    End_Page?
+  }
+ }
+}

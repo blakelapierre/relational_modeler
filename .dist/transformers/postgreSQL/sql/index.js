@@ -1,26 +1,22 @@
-"use strict";
-var createSchema = function(name) {
-  return ("CREATE SCHEMA " + name + ";");
-};
-var createTable = function(name, columns) {
-  return ("CREATE TABLE " + name + " (" + columns + ");");
-};
-var createType = function(name, values) {
-  return ("CREATE TYPE " + name + " (" + values.map(function(value) {
-    return ("'" + value + "'");
-  }).join(', ') + ")");
-};
-Object.defineProperties(module.exports, {
-  createSchema: {get: function() {
-      return createSchema;
-    }},
-  createTable: {get: function() {
-      return createTable;
-    }},
-  createType: {get: function() {
-      return createType;
-    }},
-  __esModule: {value: true}
-});
+'use strict';
 
-//# sourceMappingURL=index.js.map
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var createDatabase = exports.createDatabase = function createDatabase(name) {
+  return 'CREATE DATABASE "' + name + '";\n\\c "' + name + '"';
+};
+
+var createSchema = exports.createSchema = function createSchema(name) {
+  return 'CREATE SCHEMA "' + name + '";';
+};
+
+var createTable = exports.createTable = function createTable(name, columns, constraints) {
+  return 'CREATE TABLE ' + name + ' (' + [columns].concat(constraints || []).join(', ') + ');';
+};
+
+var createType = exports.createType = function createType(name, values) {
+  return 'CREATE TYPE ' + name + ' (' + values.map(function (value) {
+    return '\'' + value + '\'';
+  }).join(', ') + ')';
+};

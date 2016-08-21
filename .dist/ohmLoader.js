@@ -1,23 +1,39 @@
-"use strict";
-var $__fs__,
-    $__ohm_45_js__;
-var fs = ($__fs__ = require("fs"), $__fs__ && $__fs__.__esModule && $__fs__ || {default: $__fs__}).default;
-var ohm = ($__ohm_45_js__ = require("ohm-js"), $__ohm_45_js__ && $__ohm_45_js__.__esModule && $__ohm_45_js__ || {default: $__ohm_45_js__}).default;
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.loadGrammarWithSemantics = loadGrammarWithSemantics;
+exports.run = run;
+exports.runFromFile = runFromFile;
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+var _ohmJs = require('ohm-js');
+
+var _ohmJs2 = _interopRequireDefault(_ohmJs);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function loadGrammarWithSemantics(grammarName) {
-  var semanticNames = arguments[1] !== (void 0) ? arguments[1] : [];
-  var fileName = arguments[2] !== (void 0) ? arguments[2] : ("./grammar/" + grammarName + ".ohm");
-  var grammar = ohm.grammars(fs.readFileSync(fileName))[grammarName],
+  var semanticNames = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+  var fileName = arguments.length <= 2 || arguments[2] === undefined ? './grammar/' + grammarName + '.ohm' : arguments[2];
+
+  var grammar = _ohmJs2.default.grammars(_fs2.default.readFileSync(fileName))[grammarName],
       semantics = grammar.semantics();
+
   semanticNames.forEach(addSemanticName);
-  return {
-    grammar: grammar,
-    semantics: semantics
-  };
+
+  return { grammar: grammar, semantics: semantics };
+
   function addSemanticName(name) {
-    var s = require(("./grammar/" + grammarName + "." + name + ".semantics")).default;
+    var s = require('./grammar/' + grammarName + '.' + name + '.semantics').default;
     semantics.addOperation(name, s);
   }
 }
+
 function run(model, grammar, semantics, operation) {
   var match = grammar.match(model);
   if (match.succeeded()) {
@@ -27,20 +43,7 @@ function run(model, grammar, semantics, operation) {
     console.error(match.message);
   }
 }
-function runFromFile(modelFile, grammar, semantics, operation) {
-  return run(fs.readFileSync(modelFile).toString(), grammar, semantics, operation);
-}
-Object.defineProperties(module.exports, {
-  loadGrammarWithSemantics: {get: function() {
-      return loadGrammarWithSemantics;
-    }},
-  run: {get: function() {
-      return run;
-    }},
-  runFromFile: {get: function() {
-      return runFromFile;
-    }},
-  __esModule: {value: true}
-});
 
-//# sourceMappingURL=ohmLoader.js.map
+function runFromFile(modelFile, grammar, semantics, operation) {
+  return run(_fs2.default.readFileSync(modelFile).toString(), grammar, semantics, operation);
+}
