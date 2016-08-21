@@ -1,5 +1,5 @@
 #!/bin/sh
 
-cd .dist
+cd ../.dist
 
 node index.js
