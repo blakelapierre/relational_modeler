@@ -55,9 +55,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     function fileName(name) {
       let [schemaName, tableName] = name.split('.');
 
-      tableName = tableName || schemaName;
-
-      return `${tableName}${extension}`;
+      return `${schemaName}/${tableName}${extension}`;
     }
   }
 
@@ -139,12 +137,5 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     }
   }
 }
-
-export function resolveDependencies({schemas}) {
-  schemas.forEach(({tables}) => {
-
-  });
-}
-
 
 // get primaryKeys() { return _.filter(attributes, a => a.primaryKey); }
