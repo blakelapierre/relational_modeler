@@ -1,8 +1,12 @@
 import fs from 'fs';
 import ohm from 'ohm-js';
 
-export function loadGrammarWithSemantics(grammarName, semanticNames = [], fileName = `./grammar/${grammarName}.ohm`) {
-  const grammar = ohm.grammars(fs.readFileSync(fileName))[grammarName],
+export function loadGrammarWithSemanticsFromFile(grammarName, semanticNames = [], fileName = `./grammar/${grammarName}.ohm`) {
+  return loadGrammarWithSemantics(grammarName, semanticNames, fs.readFileSync(fileName));
+}
+
+export function loadGrammarWithSemantics(grammarName, semanticNames = [], grammarText = '') {
+  const grammar = ohm.grammars(grammarText)[grammarName],
         semantics = grammar.semantics();
 
   semanticNames.forEach(addSemanticName);

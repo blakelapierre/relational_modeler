@@ -20,6 +20,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function toPostgreSQL(_ref) {
   var model = _ref.model;
   var orderedTables = _ref.orderedTables;
+  var delimiter = arguments.length <= 1 || arguments[1] === undefined ? ',' : arguments[1];
+  var quote = arguments.length <= 2 || arguments[2] === undefined ? '"' : arguments[2];
   var modelAttributes = model.commonAttributes;
   var schemas = model.schemas;
 
@@ -88,9 +90,6 @@ function toPostgreSQL(_ref) {
     }
 
     function copy(qualifiedTableName) {
-      var delimiter = arguments.length <= 1 || arguments[1] === undefined ? '^' : arguments[1];
-      var quote = arguments.length <= 2 || arguments[2] === undefined ? '~' : arguments[2];
-
       return 'BEGIN; COPY ' + qualifiedTableName + ' FROM STDIN WITH CSV DELIMITER \'' + delimiter + '\' QUOTE \'' + quote + '\'; COMMIT;';
     }
 
@@ -105,7 +104,7 @@ function toPostgreSQL(_ref) {
 
       tableName = tableName || schemaName;
 
-      return '"' + tableName + extension + '"';
+      return '' + tableName + extension;
     }
   }
 

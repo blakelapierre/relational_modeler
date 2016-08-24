@@ -1,4 +1,5 @@
-RM {
+export default
+`RM {
   Model = name AttributeList? Contained<Schema*>
   Schema = name AttributeList? Contained<Table*>
 
@@ -93,4 +94,4 @@ RM_PGSQL <: RM {
   numeric = "numeric" | "decimal"
 
   VarChar = "varchar" RoundContained<number>?
-}
+}`;

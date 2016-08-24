@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 import {createDatabase, createSchema, createTable, createType} from './sql';
 
-export default function toPostgreSQL({model, orderedTables}) {
+export default function toPostgreSQL({model, orderedTables}, delimiter = ',', quote = '"') {
   const {commonAttributes: modelAttributes, schemas} = model;
 
   const schemaMap = _.transform(schemas, (map, schema) => map[schema.name] = addTableMap(schema), {});
@@ -48,7 +48,7 @@ export default function toPostgreSQL({model, orderedTables}) {
       return `run "${command}" "${file}"`;
     }
 
-    function copy(qualifiedTableName, delimiter = '^', quote = '~') {
+    function copy(qualifiedTableName) {
       return `BEGIN; COPY ${qualifiedTableName} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}'; COMMIT;`;
     }
 
@@ -57,7 +57,7 @@ export default function toPostgreSQL({model, orderedTables}) {
 
       tableName = tableName || schemaName;
 
-      return `"${tableName}${extension}"`;
+      return `${tableName}${extension}`;
     }
   }
 

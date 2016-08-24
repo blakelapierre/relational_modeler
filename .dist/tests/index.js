@@ -2,6 +2,10 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
 var _util = require('util');
 
 var _util2 = _interopRequireDefault(_util);
@@ -20,11 +24,15 @@ var _toPostgreSQL2 = _interopRequireDefault(_toPostgreSQL);
 
 var _ohmLoader = require('../ohmLoader');
 
+var _RMOhm = require('../grammar/RM.ohm.js');
+
+var _RMOhm2 = _interopRequireDefault(_RMOhm);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 require('../traceur-runtime');
 
-var _loadGrammarWithSeman = (0, _ohmLoader.loadGrammarWithSemantics)('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
+var _loadGrammarWithSeman = (0, _ohmLoader.loadGrammarWithSemantics)('RM_PGSQL', ['toObject'], _RMOhm2.default);
 
 var grammar = _loadGrammarWithSeman.grammar;
 var semantics = _loadGrammarWithSeman.semantics;

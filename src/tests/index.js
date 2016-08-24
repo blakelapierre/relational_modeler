@@ -1,5 +1,6 @@
 require('../traceur-runtime');
 
+import fs from 'fs';
 import util from 'util';
 
 import _ from 'lodash';
@@ -9,7 +10,9 @@ import toPostgreSQL from '../transformers/postgreSQL/toPostgreSQL';
 
 import {loadGrammarWithSemantics, runFromFile} from '../ohmLoader';
 
-const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], './grammar/RM.ohm');
+import rm_pgsql_grammar from '../grammar/RM.ohm.js';
+
+const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], rm_pgsql_grammar);
 
 // const model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
 const model = runFromFile('./tests/samples/usda.sr28.model', grammar, semantics, 'toObject');
