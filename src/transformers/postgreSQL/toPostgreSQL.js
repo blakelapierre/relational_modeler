@@ -77,14 +77,14 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
     if (primaryKeys.length > 0) constraints.push(`PRIMARY KEY (${primaryKeys.map(a => a.name)})`);
 
-    commands.push(createTable(`${schemaName}.${tableName}`, columns, constraints));
+    commands.push(createTable(`"${schemaName}"."${tableName}"`, columns, constraints));
 
     return commands;
 
     function generateAttribute({name, primaryKey, optional, type}) {
       const parts = [name, type ? formatType(type) : 'text'];
 
-      if (primaryKey && optional) throw new Error(`${schemaName}.${tableName}.${name} cannot be both a primary key and optional!`); // maybe outlaw this in the grammar?
+      if (primaryKey && optional) throw new Error(`"${schemaName}"."${tableName}"."${name}" cannot be both a primary key and optional!`); // maybe outlaw this in the grammar?
 
       if (!primaryKey && !optional) parts.push('NOT NULL');
 
@@ -124,7 +124,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
     function generateDependency({preArity, postArity, reference: {schema, table, attribute}}) {
       const id = (schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_${(attribute || {name: 'id'}).name}`,
-            references = `${schema || schemaName}.${table}`;
+            references = `"${schema || schemaName}"."${table}"`;
 
       let type = (attribute || {type: 'bigint'}).type;
 

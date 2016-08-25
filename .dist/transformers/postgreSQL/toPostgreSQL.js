@@ -129,7 +129,7 @@ function toPostgreSQL(_ref) {
       return a.name;
     }) + ')');
 
-    commands.push((0, _sql.createTable)(schemaName + '.' + tableName, columns, constraints));
+    commands.push((0, _sql.createTable)('"' + schemaName + '"."' + tableName + '"', columns, constraints));
 
     return commands;
 
@@ -141,7 +141,7 @@ function toPostgreSQL(_ref) {
 
       var parts = [name, type ? formatType(type) : 'text'];
 
-      if (primaryKey && optional) throw new Error(schemaName + '.' + tableName + '.' + name + ' cannot be both a primary key and optional!'); // maybe outlaw this in the grammar?
+      if (primaryKey && optional) throw new Error('"' + schemaName + '"."' + tableName + '"."' + name + '" cannot be both a primary key and optional!'); // maybe outlaw this in the grammar?
 
       if (!primaryKey && !optional) parts.push('NOT NULL');
 
@@ -184,7 +184,7 @@ function toPostgreSQL(_ref) {
       var attribute = _ref6$reference.attribute;
 
       var id = (schema === undefined ? '' : (schema || schemaName) + '_') + (table + '_' + (attribute || { name: 'id' }).name),
-          references = (schema || schemaName) + '.' + table;
+          references = '"' + (schema || schemaName) + '"."' + table + '"';
 
       var type = (attribute || { type: 'bigint' }).type;
 
