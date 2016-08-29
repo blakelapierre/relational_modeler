@@ -1,0 +1,10 @@
+#!/bin/bash
+
+mkdir -p ../../.dist/web_interface
+
+lessc style.less ../../.dist/web_interface/style.css
+babel web_interface.es2015 --presets es2015 --out-file ../../.dist/web_interface/web_interface.js
+# This should probably source from a different directory
+browserify ../../.dist/web_interface/web_interface.js --sourcetype module --outfile ../../.dist/web_interface/index.js
+
+cp index.html ../../.dist/web_interface/index.html

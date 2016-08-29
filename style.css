@@ -11,6 +11,11 @@ workspace * {
 }
 workspace modelarea {
   flex: 1 1 auto;
+  display: flex;
+}
+workspace modelarea textarea {
+  flex: 1 1 auto;
+  resize: none;
 }
 workspace resultarea {
   flex: 1 1 auto;
@@ -19,7 +24,16 @@ workspace resultarea {
 }
 workspace resultarea sqlarea {
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+workspace resultarea sqlarea textarea {
+  flex: 1 1 auto;
 }
 workspace resultarea importarea {
+  flex: 1 1 auto;
+  display: flex;
+}
+workspace resultarea importarea textarea {
   flex: 1 1 auto;
 }

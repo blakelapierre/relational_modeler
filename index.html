@@ -9,10 +9,31 @@
   </head>
   <body>
     <workspace>
-      <modelarea></modelarea>
+      <modelarea>
+        <textarea>
+database_name {
+  schema_name {
+    table_name {
+      !primaryKey,
+      attribute
+    } -> foreign_table
+
+    foreign_table {
+      !primaryKey,
+      attribute? boolean
+    }
+  }
+}
+        </textarea>
+      </modelarea>
       <resultarea>
-        <sqlarea></sqlarea>
-        <importarea></importarea>
+        <sqlarea>
+          <select>
+            <option value="postgresql">PostgreSQL</option>
+          </select>
+          <textarea></textarea>
+        </sqlarea>
+        <importarea><textarea></textarea></importarea>
       </resultarea>
     </workspace>
   </body>

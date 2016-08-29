@@ -1,0 +1,42 @@
+workspace {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  & * {
+    border: solid 1px #333;
+  }
+
+  modelarea {
+    flex: 1 1 auto;
+
+    display: flex;
+
+    textarea {
+      flex: 1 1 auto;
+
+      resize: none;
+    }
+  }
+
+  resultarea {
+    flex: 1 1 auto;
+
+    display: flex;
+    flex-direction: column;
+
+    sqlarea {
+      flex: 1 1 auto;
+    }
+
+    importarea {
+      flex: 1 1 auto;
+
+}  }
+}
