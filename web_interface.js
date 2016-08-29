@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   modelAreaTextArea.addEventListener('keyup', function (_ref) {
     var target = _ref.target;
-    return a(target);
+    return a(target.value);
   });
 
   a(modelAreaTextArea.value);
@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       console.log({ grammar: grammar, semantics: semantics });
 
+      console.log('matching', value);
       var match = grammar.match(value);
 
       if (match.succeeded()) {
