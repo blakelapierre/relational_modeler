@@ -3,18 +3,21 @@
 Sample Model:
 ````
 model_name {
-  schema_name {
-    table_name {
-      !primaryKey,
-      attribute
-    } -> foreign_table
+  database_name{
+    schema_name {
+      table_name {
+        !primaryKey,
+        attribute
+      } -> foreign_table
 
-    foreign_table {
-      !primaryKey,
-      attribute? boolean
+      foreign_table {
+        !primaryKey,
+        attribute? boolean
+      }
     }
   }
 }
+        d
 ````
 
 For the full grammar, please see [its definition](/src/grammar/RM.ohm.js).

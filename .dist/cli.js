@@ -25,7 +25,7 @@ var _RMOhm2 = _interopRequireDefault(_RMOhm);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-require('./traceur-runtime');
+// require('./traceur-runtime');
 
 var engines = {
   'postgresql': {

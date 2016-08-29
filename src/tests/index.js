@@ -1,4 +1,4 @@
-require('../traceur-runtime');
+// require('../traceur-runtime');
 
 import fs from 'fs';
 import util from 'util';
