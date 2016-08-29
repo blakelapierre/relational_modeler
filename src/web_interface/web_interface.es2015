@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         importArea = document.getElementsByTagName('importarea')[0],
         importAreaTextArea = importArea.getElementsByTagName('textarea')[0];
 
-  modelAreaTextArea.addEventListener('keyup', ({target}) => a(target));
+  modelAreaTextArea.addEventListener('keyup', ({target}) => a(target.value));
 
   a(modelAreaTextArea.value);
 
@@ -44,7 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const {grammar, semantics, engine} = loadEngineGrammarWithSemantics(currentEngine);
       console.log({grammar, semantics});
 
+      console.log('matching', value);
       const match = grammar.match(value);
+
 
       if (match.succeeded()) {
         const model = semantics(match).toObject();
