@@ -12,10 +12,21 @@ workspace * {
 workspace modelarea {
   flex: 1 1 auto;
   display: flex;
+  flex-direction: column;
 }
 workspace modelarea textarea {
   flex: 1 1 auto;
   resize: none;
+}
+workspace modelarea errorarea {
+  display: none;
+  flex: 0 1 auto;
+  white-space: pre;
+  font-family: monospace;
+  background-color: #911;
+}
+workspace modelarea errorarea.has-error {
+  display: block;
 }
 workspace resultarea {
   flex: 1 1 auto;

@@ -44,6 +44,7 @@ var currentEngine = 'postgresql';
 document.addEventListener('DOMContentLoaded', function () {
   var modelArea = document.getElementsByTagName('modelarea')[0],
       modelAreaTextArea = modelArea.getElementsByTagName('textarea')[0],
+      errorArea = modelArea.getElementsByTagName('errorarea')[0],
       resultArea = document.getElementsByTagName('resultarea')[0],
       sqlArea = document.getElementsByTagName('sqlarea')[0],
       sqlAreaTextArea = sqlArea.getElementsByTagName('textarea')[0],
@@ -83,8 +84,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         sqlAreaTextArea.value = schema.join('\n') + '\n';
         importAreaTextArea.value = imports.join('\n') + '\n';
+        errorArea.classList.remove('has-error');
       } else {
         console.log('didn\'t match!', { match: match });
+        errorArea.classList.add('has-error');
+        errorArea.innerHTML = match.message;
       }
     } catch (e) {
       console.log('error!', e);
