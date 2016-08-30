@@ -17,7 +17,6 @@ model_name {
     }
   }
 }
-        d
 ````
 
 For the full grammar, please see [its definition](/src/grammar/RM.ohm.js).
