@@ -17,11 +17,27 @@ workspace {
     flex: 1 1 auto;
 
     display: flex;
+    flex-direction: column;
 
     textarea {
       flex: 1 1 auto;
 
       resize: none;
+    }
+
+    errorarea {
+      display: none;
+
+      flex: 0 1 auto;
+
+      white-space: pre;
+      font-family: monospace;
+
+      background-color: #911;
+
+      &.has-error {
+        display: block;
+      }
     }
   }
 
@@ -33,10 +49,24 @@ workspace {
 
     sqlarea {
       flex: 1 1 auto;
+
+      display: flex;
+
+      flex-direction: column;
+
+      textarea {
+        flex: 1 1 auto;
+      }
     }
 
     importarea {
       flex: 1 1 auto;
 
-}  }
+      display: flex;
+
+      textarea {
+        flex: 1 1 auto;
+      }
+    }
+  }
 }
