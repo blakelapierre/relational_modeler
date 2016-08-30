@@ -1,3 +1,5 @@
+##A language for describing logical relations and generating SQL schemata to enforce them.
+
 Try the web interface at: [https://blakelapierre.github.io/relational_modeler](https://blakelapierre.github.io/relational_modeler)
 
 Sample Model:
@@ -27,12 +29,12 @@ For the full grammar, please see [its definition](/src/grammar/RM.ohm.js).
 -> - Indicates a foreign key attribute to the foreign table
 ````
 
-###Installation###
+###Installation
 ````
 npm install -g relational_modeler
 ````
 
-###Command-line Interface (CLI) Usage###
+###Command-line Interface (CLI) Usage
 ````
 relational_modeler sample.model
 ````
@@ -48,7 +50,7 @@ All parameters:
 relational_modeler [model file] [import file delimiter character] [import file quote character] [database engine]
 ````
 
-###Web Interface Usage###
+###Web Interface Usage
 
 The web interface is available at: [https://blakelapierre.github.io/relational_modeler](https://blakelapierre.github.io/relational_modeler)
 
