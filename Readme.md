@@ -1,4 +1,4 @@
-[Try the web interface at https://blakelapierre.github.com/relational_modeler](https://blakelapierre.github.com/relational_modeler)
+Try the web interface at: [https://blakelapierre.github.io/relational_modeler](https://blakelapierre.github.io/relational_modeler)
 
 Sample Model:
 ````
@@ -51,6 +51,8 @@ relational_modeler [model file] [import file delimiter character] [import file q
 
 ###Web Interface Usage###
 
-[The web interface is at: https://blakelapierre.github.com/relational_modeler](https://blakelapierre.github.com/relational_modeler)
+The web interface is available at: [https://blakelapierre.github.io/relational_modeler](https://blakelapierre.github.io/relational_modeler)
+
+The web interface can also be accessed by making the `.dist/web_interface` directory available to a web server and then accessing the index.html file.
 
 Models can be typed or copy-pasted into the model text field and the corresponding SQL and import scripts may be copy-pasted out of the browser into any application you want.
