@@ -1,5 +1,3 @@
-##A language for describing logical relations and generating SQL schemata to enforce them.
-
 Try the web interface at: [https://blakelapierre.github.io/relational_modeler](https://blakelapierre.github.io/relational_modeler)
 
 Sample Model:

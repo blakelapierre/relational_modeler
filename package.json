@@ -1,7 +1,7 @@
 {
   "name": "relational_modeler",
   "version": "0.2.1",
-  "description": "",
+  "description": "A language for describing logical relations and generating SQL schemata to enforce them.",
   "main": ".dist/cli.js",
   "bin": ".dist/cli.js",
   "scripts": {
