@@ -2,18 +2,16 @@ Try the web interface at: [https://blakelapierre.github.io/relational_modeler](h
 
 Sample Model:
 ````
-model_name {
-  database_name{
-    schema_name {
-      table_name {
-        !primaryKey,
-        attribute
-      } -> foreign_table
+database_name{
+  schema_name {
+    table_name {
+      !primaryKey,
+      attribute
+    } -> foreign_table
 
-      foreign_table {
-        !primaryKey,
-        attribute? boolean
-      }
+    foreign_table {
+      !primaryKey,
+      attribute? boolean
     }
   }
 }
