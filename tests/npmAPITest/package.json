@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "relational_modeler": "^0.2.6"
+    "relational_modeler": "^0.2.7"
   }
 }
