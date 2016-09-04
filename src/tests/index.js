@@ -5,8 +5,7 @@ import util from 'util';
 
 import _ from 'lodash';
 
-import api from '../api';
-import GrammarError from '../GrammarError';
+import {api, GrammarError} from '../api';
 
 const modelText = fs.readFileSync('./tests/samples/usda.sr28.model').toString();
 

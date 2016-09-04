@@ -16,20 +16,14 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _api = require('../api');
 
-var _api2 = _interopRequireDefault(_api);
-
-var _GrammarError = require('../GrammarError');
-
-var _GrammarError2 = _interopRequireDefault(_GrammarError);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var modelText = _fs2.default.readFileSync('./tests/samples/usda.sr28.model').toString();
 
 try {
-  log((0, _api2.default)(modelText, 'postgresql', '^', '~').schema.join('\n'));
+  log((0, _api.api)(modelText, 'postgresql', '^', '~').schema.join('\n'));
 } catch (e) {
-  if (e instanceof _GrammarError2.default) {
+  if (e instanceof _api.GrammarError) {
     console.log(e.match.message);
   } else console.error(e);
 }

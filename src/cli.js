@@ -3,7 +3,7 @@
 import fs from 'fs';
 import util from 'util';
 
-import api from './api';
+import {api, GrammarError} from './api';
 
 let i = 2;
 if (process.argv[0].endsWith('relational_modeler')) i = 1;

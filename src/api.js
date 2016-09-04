@@ -23,11 +23,10 @@ const engines = {
   }
 };
 
-export default
-  (modelText, engine = 'postgresql', delimiter = ',', quote = '"') =>
-{
-  return getReadyEngine(engine).generator(orderTables(generateModel(modelText, engine)), delimiter, quote);
-};
+const api = (modelText, engine = 'postgresql', delimiter = ',', quote = '"') =>
+  getReadyEngine(engine).generator(orderTables(generateModel(modelText, engine)), delimiter, quote);
+
+export {api, GrammarError};
 
 function getReadyEngine(name) {
   const engine = engines[name];

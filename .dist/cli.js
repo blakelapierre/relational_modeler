@@ -11,8 +11,6 @@ var _util2 = _interopRequireDefault(_util);
 
 var _api2 = require('./api');
 
-var _api3 = _interopRequireDefault(_api2);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var i = 2;
@@ -29,7 +27,7 @@ processModelFile(fileName, engineName, delimiter, quote);
 function processModelFile(fileName, engineName, delimiter, quote) {
   var modelText = _fs2.default.readFileSync(fileName).toString();
 
-  var _api = (0, _api3.default)(modelText, engineName, delimiter, quote);
+  var _api = (0, _api2.api)(modelText, engineName, delimiter, quote);
 
   var schema = _api.schema;
   var imports = _api.imports;

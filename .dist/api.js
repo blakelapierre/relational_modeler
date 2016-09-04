@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.GrammarError = exports.api = undefined;
 
 var _ohmJs = require('ohm-js');
 
@@ -45,13 +46,16 @@ var engines = {
   }
 };
 
-exports.default = function (modelText) {
+var api = function api(modelText) {
   var engine = arguments.length <= 1 || arguments[1] === undefined ? 'postgresql' : arguments[1];
   var delimiter = arguments.length <= 2 || arguments[2] === undefined ? ',' : arguments[2];
   var quote = arguments.length <= 3 || arguments[3] === undefined ? '"' : arguments[3];
-
   return getReadyEngine(engine).generator((0, _orderTables2.default)(generateModel(modelText, engine)), delimiter, quote);
 };
+
+exports.api = api;
+exports.GrammarError = _GrammarError2.default;
+
 
 function getReadyEngine(name) {
   var engine = engines[name];
