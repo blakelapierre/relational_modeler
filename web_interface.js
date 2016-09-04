@@ -1,43 +1,19 @@
 'use strict';
 
-var _orderTables = require('../transformers/orderTables');
+var _api2 = require('../api');
 
-var _orderTables2 = _interopRequireDefault(_orderTables);
+var _api3 = _interopRequireDefault(_api2);
 
-var _toPostgreSQL = require('../transformers/postgreSQL/toPostgreSQL');
+var _GrammarError = require('../GrammarError');
 
-var _toPostgreSQL2 = _interopRequireDefault(_toPostgreSQL);
-
-var _ohmJs = require('ohm-js');
-
-var _ohmJs2 = _interopRequireDefault(_ohmJs);
-
-var _RMOhm = require('../grammar/RM.ohm.js');
-
-var _RMOhm2 = _interopRequireDefault(_RMOhm);
-
-var _RM_PGSQLToObject = require('../grammar/RM_PGSQL.toObject.semantics');
-
-var _RM_PGSQLToObject2 = _interopRequireDefault(_RM_PGSQLToObject);
+var _GrammarError2 = _interopRequireDefault(_GrammarError);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var delimiter = '^',
-    quote = '~';
 // [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
 
-var engines = {
-  'postgresql': {
-    grammar: {
-      'name': 'RM_PGSQL',
-      'text': _RMOhm2.default
-    },
-    semantics: {
-      'toObject': _RM_PGSQLToObject2.default
-    },
-    generator: _toPostgreSQL2.default
-  }
-};
+var delimiter = '^',
+    quote = '~';
 
 var currentEngine = 'postgresql';
 
@@ -60,53 +36,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function a(value) {
     try {
-      var _loadEngineGrammarWit = loadEngineGrammarWithSemantics(currentEngine);
+      var _api = (0, _api3.default)(value, currentEngine, delimiter, quote);
 
-      var grammar = _loadEngineGrammarWit.grammar;
-      var semantics = _loadEngineGrammarWit.semantics;
-      var engine = _loadEngineGrammarWit.engine;
-
-      console.log({ grammar: grammar, semantics: semantics });
-
-      console.log('matching', value);
-      var match = grammar.match(value);
-
-      if (match.succeeded()) {
-        var model = semantics(match).toObject();
-
-        console.log({ model: model });
-
-        var _processModel = processModel(engine, model);
-
-        var schema = _processModel.schema;
-        var imports = _processModel.imports;
+      var schema = _api.schema;
+      var imports = _api.imports;
 
 
-        sqlAreaTextArea.value = schema.join('\n') + '\n';
-        importAreaTextArea.value = imports.join('\n') + '\n';
-        errorArea.classList.remove('has-error');
-      } else {
-        console.log('didn\'t match!', { match: match });
-        errorArea.classList.add('has-error');
-        errorArea.innerHTML = match.message;
-      }
+      sqlAreaTextArea.value = schema.join('\n') + '\n';
+      importAreaTextArea.value = imports.join('\n') + '\n';
+      errorArea.classList.remove('has-error');
     } catch (e) {
       console.log('error!', e);
+      if (e instanceof _GrammarError2.default) {
+        var match = e.match;
+
+        errorArea.classList.add('has-error');
+        errorArea.innerHTML = match.message;
+      } else {
+        errorArea.classList.add('has-error');
+        errorArea.innerHTML = e.message;
+      }
     }
   }
 });
 
 function processModel(engine, model) {
-  return engine.generator((0, _orderTables2.default)(model), delimiter, quote);
-}
-
-function loadEngineGrammarWithSemantics(engineName) {
-  var engine = engines[engineName];
-
-  var grammar = _ohmJs2.default.grammars(engine.grammar.text)[engine.grammar.name],
-      semantics = grammar.semantics();
-
-  for (var name in engine.semantics) {
-    semantics.addOperation(name, engine.semantics[name]);
-  }return { grammar: grammar, semantics: semantics, engine: engine };
+  return (0, _api3.default)(model, currentEngine, delimiter, quote);
 }
