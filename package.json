@@ -1,6 +1,6 @@
 {
   "name": "relational_modeler",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "A language for describing logical relations and generating SQL schemata to enforce them.",
   "repository": "https://github.com/blakelapierre/relational_modeler",
   "main": ".dist/api.js",
