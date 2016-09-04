@@ -3,7 +3,7 @@
   "version": "0.2.4",
   "description": "A language for describing logical relations and generating SQL schemata to enforce them.",
   "repository": "https://github.com/blakelapierre/relational_modeler",
-  "main": ".dist/cli.js",
+  "main": ".dist/api.js",
   "bin": ".dist/cli.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

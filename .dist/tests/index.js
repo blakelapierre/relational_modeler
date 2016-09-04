@@ -14,35 +14,25 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _orderTables = require('../transformers/orderTables');
+var _api = require('../api');
 
-var _orderTables2 = _interopRequireDefault(_orderTables);
+var _api2 = _interopRequireDefault(_api);
 
-var _toPostgreSQL = require('../transformers/postgreSQL/toPostgreSQL');
+var _GrammarError = require('../GrammarError');
 
-var _toPostgreSQL2 = _interopRequireDefault(_toPostgreSQL);
-
-var _ohmLoader = require('../ohmLoader');
-
-var _RMOhm = require('../grammar/RM.ohm.js');
-
-var _RMOhm2 = _interopRequireDefault(_RMOhm);
+var _GrammarError2 = _interopRequireDefault(_GrammarError);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _loadGrammarWithSeman = (0, _ohmLoader.loadGrammarWithSemantics)('RM_PGSQL', ['toObject'], _RMOhm2.default);
+var modelText = _fs2.default.readFileSync('./tests/samples/usda.sr28.model').toString();
 
-var grammar = _loadGrammarWithSeman.grammar;
-var semantics = _loadGrammarWithSeman.semantics;
-
-// const model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
-
-var model = (0, _ohmLoader.runFromFile)('./tests/samples/usda.sr28.model', grammar, semantics, 'toObject');
-
-// log(util.inspect(model, false, null));
-
-log((0, _toPostgreSQL2.default)((0, _orderTables2.default)(model)).schema.join('\n'));
-
+try {
+  log((0, _api2.default)(modelText, 'postgresql', '^', '~').schema.join('\n'));
+} catch (e) {
+  if (e instanceof _GrammarError2.default) {
+    console.log(e.match.message);
+  } else console.error(e);
+}
 function log() {
   for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
     args[_key] = arguments[_key];

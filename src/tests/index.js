@@ -5,22 +5,20 @@ import util from 'util';
 
 import _ from 'lodash';
 
-import orderTables from '../transformers/orderTables';
-import toPostgreSQL from '../transformers/postgreSQL/toPostgreSQL';
+import api from '../api';
+import GrammarError from '../GrammarError';
 
-import {loadGrammarWithSemantics, runFromFile} from '../ohmLoader';
+const modelText = fs.readFileSync('./tests/samples/usda.sr28.model').toString();
 
-import rm_pgsql_grammar from '../grammar/RM.ohm.js';
-
-const {grammar, semantics} = loadGrammarWithSemantics('RM_PGSQL', ['toObject'], rm_pgsql_grammar);
-
-// const model = runFromFile('./tests/samples/personal.model', grammar, semantics, 'toObject');
-const model = runFromFile('./tests/samples/usda.sr28.model', grammar, semantics, 'toObject');
-
-// log(util.inspect(model, false, null));
-
-log(toPostgreSQL(orderTables(model)).schema.join('\n'));
-
+try {
+  log(api(modelText, 'postgresql', '^', '~').schema.join('\n'));
+}
+catch (e) {
+  if (e instanceof GrammarError) {
+    console.log(e.match.message);
+  }
+  else console.error(e);
+}
 function log(...args) {
   console.log.apply(console, args.map(transformArg));
 
