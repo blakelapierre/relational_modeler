@@ -67,7 +67,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     const schema = schemaMap[schemaName],
           {commonAttributes: schemaAttributes} = schema,
           table = schema.tableMap[tableName],
-          attributes = _.flatMap([modelAttributes, schemaAttributes, table.attributes]),
+          attributes = _.flatMap([modelAttributes, schemaAttributes, table.attributes || []]),
           primaryKeys = table.primaryKeys,
           columns = _.map(attributes, generateAttribute)
                      .concat(_.map(table.dependencies, generateDependency))

@@ -119,7 +119,7 @@ function toPostgreSQL(_ref) {
     var schema = schemaMap[schemaName];
     var schemaAttributes = schema.commonAttributes;
     var table = schema.tableMap[tableName];
-    var attributes = _lodash2.default.flatMap([modelAttributes, schemaAttributes, table.attributes]);
+    var attributes = _lodash2.default.flatMap([modelAttributes, schemaAttributes, table.attributes || []]);
     var primaryKeys = table.primaryKeys;
     var columns = _lodash2.default.map(attributes, generateAttribute).concat(_lodash2.default.map(table.dependencies, generateDependency)).join(', ');
 

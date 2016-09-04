@@ -1,28 +1,11 @@
 
 // [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
 
-import orderTables from '../transformers/orderTables';
-import toPostgreSQL from '../transformers/postgreSQL/toPostgreSQL';
+import api from '../api';
 
-import  ohm from 'ohm-js';
-
-import rm_pgsql_grammar from '../grammar/RM.ohm.js';
-import rm_pgsql_toObject from '../grammar/RM_PGSQL.toObject.semantics';
+import GrammarError from '../GrammarError';
 
 const delimiter = '^', quote = '~';
-
-const engines = {
-  'postgresql': {
-    grammar: {
-      'name': 'RM_PGSQL',
-      'text': rm_pgsql_grammar
-    },
-    semantics: {
-      'toObject': rm_pgsql_toObject
-    },
-    generator: toPostgreSQL
-  }
-};
 
 const currentEngine = 'postgresql';
 
@@ -42,47 +25,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function a(value) {
     try {
-      const {grammar, semantics, engine} = loadEngineGrammarWithSemantics(currentEngine);
-      console.log({grammar, semantics});
+      const {schema, imports} = api(value, currentEngine, delimiter, quote);
 
-      console.log('matching', value);
-      const match = grammar.match(value);
-
-
-      if (match.succeeded()) {
-        const model = semantics(match).toObject();
-
-        console.log({model});
-
-        const {schema, imports} = processModel(engine, model);
-
-        sqlAreaTextArea.value = schema.join('\n') + '\n';
-        importAreaTextArea.value = imports.join('\n') + '\n';
-        errorArea.classList.remove('has-error');
-      }
-      else {
-        console.log('didn\'t match!', {match});
-        errorArea.classList.add('has-error');
-        errorArea.innerHTML = match.message;
-      }
+      sqlAreaTextArea.value = schema.join('\n') + '\n';
+      importAreaTextArea.value = imports.join('\n') + '\n';
+      errorArea.classList.remove('has-error');
     }
     catch (e) {
       console.log('error!', e);
+      if (e instanceof(GrammarError)) {
+        const {match} = e;
+        errorArea.classList.add('has-error');
+        errorArea.innerHTML = match.message;
+      }
+      else {
+        errorArea.classList.add('has-error');
+        errorArea.innerHTML = e.message;
+      }
     }
   }
 });
 
 function processModel(engine, model) {
-  return engine.generator(orderTables(model), delimiter, quote);
+  return api(model, currentEngine, delimiter, quote);
 }
 
-function loadEngineGrammarWithSemantics(engineName) {
-  const engine = engines[engineName];
-
-  const grammar = ohm.grammars(engine.grammar.text)[engine.grammar.name],
-        semantics = grammar.semantics();
-
-  for (let name in engine.semantics) semantics.addOperation(name, engine.semantics[name]);
-
-  return {grammar, semantics, engine};
-}

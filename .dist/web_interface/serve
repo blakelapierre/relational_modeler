@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#try: npm install -g node-static
+static ../.././dist/web_interface/

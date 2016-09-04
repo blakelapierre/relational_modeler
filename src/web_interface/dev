@@ -1,0 +1,9 @@
+#!/bin/bash
+
+./build
+browser-sync start --https -s ../../.dist/web_interface
+#try: dnf install inotify-tools
+inotifywait -qrme close_write ./ | while read path event file; do
+  echo "modified"
+  ./build
+done
