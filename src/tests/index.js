@@ -19,6 +19,7 @@ catch (e) {
   }
   else console.error(e);
 }
+
 function log(...args) {
   console.log.apply(console, args.map(transformArg));
 
