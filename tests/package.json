@@ -1,0 +1,14 @@
+{
+  "name": "npmapitest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "relational_modeler": "^0.2.4"
+  }
+}

@@ -53,3 +53,21 @@ The web interface is available at: [https://blakelapierre.github.io/relational_m
 The web interface can also be accessed by making the `.dist/web_interface` directory available to a web server and then accessing the index.html file.
 
 Models can be typed or copy-pasted into the model text field and the corresponding SQL and import scripts may be copy-pasted out of the browser into any application you want.
+
+
+###API Usage
+
+````
+import api from 'relational_modeler';
+import GrammarError from 'relational_modeler/GrammarError'; // Check this is right/valid
+
+try {
+  console.log(api(modelText, 'postgresql', '^', '~').schema.join('\n'));
+}
+catch (e) {
+  if (e instanceof GrammarError) {
+    console.log(e.match.message);
+  }
+  else console.log(e);
+}
+````
