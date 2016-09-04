@@ -2,22 +2,12 @@
 
 var _relational_modeler = require('relational_modeler');
 
-var _relational_modeler2 = _interopRequireDefault(_relational_modeler);
-
-var _GrammarError = require('relational_modeler/GrammarError');
-
-var _GrammarError2 = _interopRequireDefault(_GrammarError);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// Check this is right/valid
-
 var modelText = 'database_name{\n  schema_name {\n    table_name {\n      !primaryKey,\n      attribute\n    } -> foreign_table\n\n    foreign_table {\n      !primaryKey,\n      attribute? boolean\n    }\n  }\n}';
 
 try {
-  console.log((0, _relational_modeler2.default)(modelText, 'postgresql', '^', '~').schema.join('\n'));
+  console.log((0, _relational_modeler.api)(modelText, 'postgresql', '^', '~').schema.join('\n'));
 } catch (e) {
-  if (e instanceof _GrammarError2.default) {
+  if (e instanceof _relational_modeler.GrammarError) {
     console.log(e.match.message);
   } else console.log(e);
 }

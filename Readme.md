@@ -58,8 +58,22 @@ Models can be typed or copy-pasted into the model text field and the correspondi
 ###API Usage
 
 ````
-import api from 'relational_modeler';
-import GrammarError from 'relational_modeler/GrammarError'; // Check this is right/valid
+import {api, GrammarError} from 'relational_modeler';
+
+const modelText =
+`database_name{
+  schema_name {
+    table_name {
+      !primaryKey,
+      attribute
+    } -> foreign_table
+
+    foreign_table {
+      !primaryKey,
+      attribute? boolean
+    }
+  }
+}`;
 
 try {
   console.log(api(modelText, 'postgresql', '^', '~').schema.join('\n'));

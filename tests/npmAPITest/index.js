@@ -1,5 +1,4 @@
-import api from 'relational_modeler';
-import GrammarError from 'relational_modeler/GrammarError'; // Check this is right/valid
+import {api, GrammarError} from 'relational_modeler';
 
 const modelText =
 `database_name{
