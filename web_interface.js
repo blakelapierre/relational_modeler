@@ -2,18 +2,9 @@
 
 var _api2 = require('../api');
 
-var _api3 = _interopRequireDefault(_api2);
-
-var _GrammarError = require('../GrammarError');
-
-var _GrammarError2 = _interopRequireDefault(_GrammarError);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
-
 var delimiter = '^',
     quote = '~';
+// [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
 
 var currentEngine = 'postgresql';
 
@@ -36,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function a(value) {
     try {
-      var _api = (0, _api3.default)(value, currentEngine, delimiter, quote);
+      var _api = (0, _api2.api)(value, currentEngine, delimiter, quote);
 
       var schema = _api.schema;
       var imports = _api.imports;
@@ -47,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
       errorArea.classList.remove('has-error');
     } catch (e) {
       console.log('error!', e);
-      if (e instanceof _GrammarError2.default) {
+      if (e instanceof _api2.GrammarError) {
         var match = e.match;
 
         errorArea.classList.add('has-error');
@@ -61,5 +52,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function processModel(engine, model) {
-  return (0, _api3.default)(model, currentEngine, delimiter, quote);
+  return (0, _api2.api)(model, currentEngine, delimiter, quote);
 }
