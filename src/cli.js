@@ -12,13 +12,14 @@ const fileName = process.argv[i];
 
 const delimiter = process.argv[i+1] || ',',
       quote = process.argv[i+2] || '"',
-      engineName = process.argv[i+3] || 'postgresql';
+      engineName = process.argv[i+3] || 'postgresql',
+      importMethod = process.argv[i+4] || 'psql';
 
 processModelFile(fileName, engineName, delimiter, quote);
 
 function processModelFile(fileName, engineName, delimiter, quote) {
   const modelText = fs.readFileSync(fileName).toString(),
-        {schema, imports} = api(modelText, engineName, delimiter, quote);
+        {schema, imports} = api(modelText, engineName, delimiter, quote, importMethod);
 
   const defaultName = fileName.split('.').slice(0, -1).join('.').split(/[\\/]/).pop(); //http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript#comment29942319_15270931
 

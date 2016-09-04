@@ -1,9 +1,7 @@
 
 // [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
 
-import api from '../api';
-
-import GrammarError from '../GrammarError';
+import {api, GrammarError} from '../api';
 
 const delimiter = '^', quote = '~';
 

@@ -1,6 +1,6 @@
 usda {
  sr28 {
-  FOOD_DES {
+  Food_Description {
     !NDB_No,
     Long_Desc,
     Short_Desc,
@@ -13,27 +13,27 @@ usda {
     Pro_Factor,
     Fat_Factor,
     CHO_Factor
-  } -> FD_GROUP
+  } -> Food_Group_Description
 
-  FD_GROUP {
+  Food_Group_Description {
     !FdGrp_Cd,
     FdGrp_Desc
   }
 
-  LANGUAL {
+  LanguaL_Factor {
     NDB_No,
-    !Factor_Code text
+    !Factor_Code
   }
 
-  LANGDESC {
+  LanguaL_Factors_Description {
     Description
-  } -> LANGUAL
+  } -> LanguaL_Factor
 
-  NUT_DATA {
+  Nutrient_Data {
     !NDB_No,
     !Nutr_No,
     Nutr_Val numeric(10,3),
-    Num_Data_Pts? numeric(5),
+    Num_Data_Pts numeric(5),
     Std_Error numeric(8,3),
     Ref_NDB_No,
     Add_Nutr_Mark,
@@ -47,10 +47,10 @@ usda {
     AddMod_Date,
     CC
   } ->
-    SRC_CD
-    DERV_CD
+    Source_Code
+    Data_Derivation_Code
 
-  NUTR_DEF {
+  Nutrient_Definition {
     !Nutr_No,
     Units,
     Tagname,
@@ -59,17 +59,17 @@ usda {
     SR_Order numeric(6)
   }
 
-  SRC_CD {
+  Source_Code {
     !Src_Cd varchar(2),
     SrcCd_Desc
   }
 
-  DERV_CD {
+  Data_Derivation_Code {
     !Deriv_Cd,
     Deriv_Desc
   }
 
-  WEIGHT {
+  Weight {
     !NDB_No,
     !Seq,
     Amount numeric(5,3),
@@ -79,7 +79,7 @@ usda {
     Std_Dev numeric(7,3)
   }
 
-  FOOTNOTE {
+  Footnote {
     NDB_No,
     Footnt_No,
     Footnt_Typ,
@@ -87,13 +87,13 @@ usda {
     Footnt_Txt
   }
 
-  DATSRCLN {
+  Sources_of_Data_Link {
     !NDB_No,
     !Nutr_No
   } ->
-    !DATA_SRC
+    Sources_of_Data
 
-  DATA_SRC {
+  Sources_of_Data {
     !DataSrc_ID text,
     Authors?,
     Title,

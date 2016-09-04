@@ -20,26 +20,27 @@ var fileName = process.argv[i];
 
 var delimiter = process.argv[i + 1] || ',',
     quote = process.argv[i + 2] || '"',
-    engineName = process.argv[i + 3] || 'postgresql';
+    engineName = process.argv[i + 3] || 'postgresql',
+    importMethod = process.argv[i + 4] || 'psql';
 
 processModelFile(fileName, engineName, delimiter, quote);
 
 function processModelFile(fileName, engineName, delimiter, quote) {
-  var modelText = _fs2.default.readFileSync(fileName).toString();
+      var modelText = _fs2.default.readFileSync(fileName).toString();
 
-  var _api = (0, _api2.api)(modelText, engineName, delimiter, quote);
+      var _api = (0, _api2.api)(modelText, engineName, delimiter, quote, importMethod);
 
-  var schema = _api.schema;
-  var imports = _api.imports;
+      var schema = _api.schema;
+      var imports = _api.imports;
 
 
-  var defaultName = fileName.split('.').slice(0, -1).join('.').split(/[\\/]/).pop(); //http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript#comment29942319_15270931
+      var defaultName = fileName.split('.').slice(0, -1).join('.').split(/[\\/]/).pop(); //http://stackoverflow.com/questions/3820381/need-a-basename-function-in-javascript#comment29942319_15270931
 
-  write(defaultName + '.sql', schema.join('\n') + '\n');
-  write(defaultName + '.import', imports.join('\n') + '\n');
+      write(defaultName + '.sql', schema.join('\n') + '\n');
+      write(defaultName + '.import', imports.join('\n') + '\n');
 }
 
 function write(fileName, content) {
-  console.log('writing', fileName);
-  _fs2.default.writeFileSync(fileName, content);
+      console.log('writing', fileName);
+      _fs2.default.writeFileSync(fileName, content);
 }

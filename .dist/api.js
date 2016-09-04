@@ -50,7 +50,8 @@ var api = function api(modelText) {
   var engine = arguments.length <= 1 || arguments[1] === undefined ? 'postgresql' : arguments[1];
   var delimiter = arguments.length <= 2 || arguments[2] === undefined ? ',' : arguments[2];
   var quote = arguments.length <= 3 || arguments[3] === undefined ? '"' : arguments[3];
-  return getReadyEngine(engine).generator((0, _orderTables2.default)(generateModel(modelText, engine)), delimiter, quote);
+  var importMethod = arguments.length <= 4 || arguments[4] === undefined ? 'psql' : arguments[4];
+  return getReadyEngine(engine).generator((0, _orderTables2.default)(generateModel(modelText, engine)), delimiter, quote, importMethod);
 };
 
 exports.api = api;

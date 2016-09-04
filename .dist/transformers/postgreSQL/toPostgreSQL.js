@@ -16,11 +16,18 @@ var _sql = require('./sql');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+//Should be moved out somewhere else
+var importMethods = {
+  'psql': '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\nrun() {\n     echo "running $1"\n\n     # "cat "/data/$2" | psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DATABASE -v ON_ERROR_STOP=1 -c "$1""\n\n      psql -h "$POSTGRES_HOST"       -p "$POSTGRES_PORT"       -d "$POSGRES_DATABASE"       -v ON_ERROR_STOP=1       -U "$POSTGRES_USER"       -x       -c "$1" < $2\n}',
+  'docker': '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\nrun() {\n     echo "running $1"\n\n     docker run --rm -it \\\n                --link postgres-usda \\\n               -v $(pwd)/data:/data:z \\\n               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"${1}\\" < \\"/data/${2}\\""\n}\n'
+};
+
 function toPostgreSQL(_ref) {
   var model = _ref.model;
   var orderedTables = _ref.orderedTables;
   var delimiter = arguments.length <= 1 || arguments[1] === undefined ? ',' : arguments[1];
   var quote = arguments.length <= 2 || arguments[2] === undefined ? '"' : arguments[2];
+  var importMethod = arguments.length <= 3 || arguments[3] === undefined ? 'psql' : arguments[3];
   var modelAttributes = model.commonAttributes;
   var schemas = model.schemas;
 
@@ -35,7 +42,7 @@ function toPostgreSQL(_ref) {
 
   return {
     schema: [(0, _sql.createDatabase)(model.name)].concat(createSchemas(schemas, schemaMap, orderedTables)),
-    imports: createImports(orderedTables)
+    imports: createImports(orderedTables, importMethod)
   };
 
   function addTableMap(schema) {
@@ -77,12 +84,12 @@ function toPostgreSQL(_ref) {
     _lodash2.default.flatMap(orderedTables, processTable));
   }
 
-  function createImports(orderedTables) {
-    var extension = arguments.length <= 1 || arguments[1] === undefined ? '.txt' : arguments[1];
+  function createImports(orderedTables, importMethod) {
+    var extension = arguments.length <= 2 || arguments[2] === undefined ? '.txt' : arguments[2];
 
-    return orderedTables.map(function (qualifiedTableName) {
+    return [importMethods[importMethod]].concat(orderedTables.map(function (qualifiedTableName) {
       return run(copy(qualifiedTableName), fileName(qualifiedTableName));
-    });
+    }));
 
     function run(command, file) {
       return 'run "' + command + '" "' + file + '"';
@@ -129,7 +136,7 @@ function toPostgreSQL(_ref) {
       return a.name;
     }) + ')');
 
-    commands.push((0, _sql.createTable)('"' + schemaName + '"."' + tableName + '"', columns, constraints));
+    commands.push((0, _sql.createTable)(schemaName + '.' + tableName, columns, constraints));
 
     return commands;
 
@@ -141,7 +148,7 @@ function toPostgreSQL(_ref) {
 
       var parts = [name, type ? formatType(type) : 'text'];
 
-      if (primaryKey && optional) throw new Error('"' + schemaName + '"."' + tableName + '"."' + name + '" cannot be both a primary key and optional!'); // maybe outlaw this in the grammar?
+      if (primaryKey && optional) throw new Error(schemaName + '.' + tableName + '.' + name + ' cannot be both a primary key and optional!'); // maybe outlaw this in the grammar?
 
       if (!primaryKey && !optional) parts.push('NOT NULL');
 
@@ -184,7 +191,7 @@ function toPostgreSQL(_ref) {
       var attribute = _ref6$reference.attribute;
 
       var id = (schema === undefined ? '' : (schema || schemaName) + '_') + (table + '_' + (attribute || { name: 'id' }).name),
-          references = '"' + (schema || schemaName) + '"."' + table + '"';
+          references = (schema || schemaName) + '.' + table;
 
       var type = (attribute || { type: 'bigint' }).type;
 
