@@ -16,12 +16,46 @@ database_name{
   }
 }
 
-
 experiments { !id, inserted_at timestamp } {
   binary {
     coin_flip {
       outcome { 'H', 'T' }
     }
+  }
+}
+
+dist  {
+  accounts {
+    accounts {key}
+  }
+
+  features {
+    features {description}
+    accounts_features -> accounts.accounts -> features
+  }
+
+  billing {
+    transaction {amount numeric} -> features.accounts_features
+  }
+}
+
+dist {!id, inserted_at timestamp} {
+  accounts {
+    account {key}
+  }
+
+  features {
+    feature {description, unlocked boolean} -> feature (parent_feature)
+    account_feature -> accounts.account -> feature
+    feature_cost {cost numeric} -> feature
+    feature_schedule {global_unlock_value numeric} -> feature
+    feature_progress {contributed_value numeric} -> feature
+  }
+
+  transactions {
+    transaction -> accounts.account
+    transaction_detail {amount numeric} -> transaction
+    transaction_account_feature -> features.account_feature -> transaction_detail
   }
 }
 ````
