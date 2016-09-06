@@ -1,7 +1,7 @@
 
 // [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
 
-import {api, GrammarError} from '../api';
+import {api, GrammarError, SemanticError} from '../api';
 
 const delimiter = '^', quote = '~';
 
@@ -30,15 +30,19 @@ document.addEventListener('DOMContentLoaded', () => {
       errorArea.classList.remove('has-error');
     }
     catch (e) {
-      console.log('error!', e);
+      console.log('error!', {e});
       if (e instanceof(GrammarError)) {
         const {match} = e;
         errorArea.classList.add('has-error');
         errorArea.innerHTML = match.message;
       }
-      else {
+      else if (e instanceof(SemanticError)) {
         errorArea.classList.add('has-error');
         errorArea.innerHTML = e.message;
+      }
+      else {
+        errorArea.classList.add('has-error');
+        errorArea.innerHTML = e.stack;
       }
     }
   }
@@ -47,4 +51,3 @@ document.addEventListener('DOMContentLoaded', () => {
 function processModel(engine, model) {
   return api(model, currentEngine, delimiter, quote);
 }
-
