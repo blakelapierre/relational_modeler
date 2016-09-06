@@ -1,5 +1,7 @@
 import _ from 'lodash';
 
+import SemanticError from '../../SemanticError';
+
 import {createDatabase, createSchema, createTable, createType} from './sql';
 
 //Should be moved out somewhere else
@@ -7,10 +9,11 @@ const importMethods = {
   'psql':
 `#!/bin/bash
 
-POSTGRES_HOST=postgres-usda
+POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_DATABASE=usda
+ENCODING=SQL_ASCII
 
 # if nc -h; then
 #      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
@@ -22,15 +25,13 @@ POSTGRES_DATABASE=usda
 run() {
      echo "running $1"
 
-     # "cat "/data/$2" | psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DATABASE -v ON_ERROR_STOP=1 -c "$1""
-
-      psql -h "$POSTGRES_HOST" \
-      -p "$POSTGRES_PORT" \
-      -d "$POSGRES_DATABASE" \
-      -v ON_ERROR_STOP=1 \
-      -U "$POSTGRES_USER" \
-      -x \
-      -c "$1" < $2
+     psql -h "$POSTGRES_HOST" \
+          -p "$POSTGRES_PORT" \
+          -d "$POSGRES_DATABASE" \
+          -v ON_ERROR_STOP=1 \
+          -U "$POSTGRES_USER" \
+          -x \
+          -c "$1" < $2
 }`,
   'docker':
 `#!/bin/bash
@@ -39,6 +40,7 @@ POSTGRES_HOST=postgres-usda
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_DATABASE=usda
+ENCODING=SQL_ASCII
 
 # if nc -h; then
 #      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
@@ -65,7 +67,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
   model.schemaMap = schemaMap; // mutation of passed object!
 
-  resolveDependencies(schemas, schemaMap);
+  resolveDependencies(schemas, schemaMap, orderedTables);
 
   return {
     schema: [createDatabase(model.name)].concat(createSchemas(schemas, schemaMap, orderedTables)),
@@ -77,17 +79,34 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     return schema;
   }
 
-  // This should be broken out into a separate model, but we want the schema map and that is here!
-  function resolveDependencies(schemas, schemaMap) {
-    schemas.forEach(({tables}) => tables.forEach(table => table.primaryKeys = _.filter(table.attributes, a => a.primaryKey)));
-    schemas.forEach(({name, tables}) => {
-      return tables.forEach(table => {
-        const {name: tableName, dependencies} = table;
-        return dependencies.forEach(({reference}) => {
-          reference.attribute = schemaMap[reference.schema || name].tableMap[reference.table].primaryKeys[0];
-        });
-      });
+  // This should be broken out into a separate model (module?), but we want the schema map and that is here!
+  function resolveDependencies(schemas, schemaMap, orderedTables) {
+    _.forEach(orderedTables, name => {
+      const [schemaName, tableName] = name.split('.'),
+            schema = schemaMap[schemaName],
+            table = schema.tableMap[tableName];
+
+      if (!table) throw new SemanticError(`No Table "${tableName}!"`);
+
+      table.primaryKeys =
+        _.concat(
+          _.filter(modelAttributes, a => a.primaryKey),
+          _.filter(schema.commonAttributes, a => a.primaryKey),
+          _.filter(table.attributes, a => a.primaryKey),
+          _.map(
+            _.filter(table.dependencies, d => d.primaryKey),
+              ({name, reference: {schema: schemaName, table: tableName}}) => //console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+              ({
+                name: name ||
+                      ((schemaName === undefined ? '' : `${schemaName || schema.name}_`) +
+                      `${tableName}_${((schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0]) || {name: 'id'}).name}`)
+              })));
     });
+
+    schemas.forEach(({name, tables}) =>
+      tables.forEach(({name: tableName, dependencies}) =>
+        dependencies.forEach(({reference}) =>
+          reference.attribute = schemaMap[reference.schema || name].tableMap[reference.table].primaryKeys[0])));
   }
 
   function createSchemas(schemas, schemaMap, orderedTables) {
@@ -105,7 +124,8 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     }
 
     function copy(qualifiedTableName) {
-      return `BEGIN; COPY ${qualifiedTableName} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}'; COMMIT;`;
+      // should support something like: (${columnList}) so that imports can more easily be customized to the column order of the data file
+      return `SET client_encoding = '$\{ENCODING\}'; BEGIN; COPY ${qualifiedTableName} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}' ENCODING '$\{ENCODING\}' NULL ''; COMMIT;`;
     }
 
     function fileName(name) {
@@ -178,14 +198,15 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
       }
     }
 
-    function generateDependency({preArity, postArity, reference: {schema, table, attribute}}) {
-      const id = (schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_${(attribute || {name: 'id'}).name}`,
+    function generateDependency({name, preArity, postArity, reference: {schema, table, attribute}, optional}) {
+      const id = name ||
+                 ((schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_${(attribute || {name: 'id'}).name}`),
             references = `${schema || schemaName}.${table}`;
 
       let type = (attribute || {type: 'bigint'}).type;
 
       if (typeof type !== 'string') type = type.type;
-      type = `${type} NOT NULL`;
+      if (!optional) type = `${type} NOT NULL`;
 
       if (preArity === 1 && postArity === 1) type += ' UNIQUE';
 
@@ -195,3 +216,13 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 }
 
 // get primaryKeys() { return _.filter(attributes, a => a.primaryKey); }
+
+
+
+class Table {
+  constructor(name, attributes, dependencies) {
+    this.name = name;
+    this.attributes = attributes;
+    this.dependencies = dependencies;
+  }
+}

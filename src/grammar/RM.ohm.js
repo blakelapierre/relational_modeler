@@ -19,10 +19,12 @@ export default
   Value = digit+
         | CContained<"'", name, "'">
 
-  Dependency = arity? dependency_glyph arity? Reference
+  Dependency = arity? dependency_glyph arity? PrimaryKey? Reference Optional? RoundContained<ReferenceName>?
 
   Reference = SchemaTableName
             | TableName
+
+  ReferenceName = name
 
   SchemaTableName = name "." name
   TableName = name

@@ -39,11 +39,14 @@ exports.default = {
   Set: function Set(values) {
     return (0, _util.join)({ type: 'Set', values: values });
   },
-  Dependency: function Dependency(preArity, glyph, postArity, reference) {
+  Dependency: function Dependency(preArity, glyph, postArity, primaryKey, reference, optional, name) {
     return (0, _util.join)({
       preArity: (0, _util.first)(preArity) || '*',
       postArity: (0, _util.first)(postArity) || '*',
-      reference: reference
+      primaryKey: (0, _util.first)(primaryKey) === '!',
+      reference: reference,
+      optional: optional,
+      name: (name || '').length > 0 ? name : undefined
     });
   },
   SchemaTableName: function SchemaTableName(schema, dot, table) {

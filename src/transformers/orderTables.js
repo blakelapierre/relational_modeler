@@ -16,9 +16,16 @@ export default function orderTables(model) {
     return _.flatMap(_.map(tables, getTableLinks));
 
     function getTableLinks(table) {
-      const {name, dependencies} = table;
-      if (dependencies.length === 0) return [[`${schemaName}.${name}`, '*']];
-      return _.map(dependencies, ({reference: {schema, table}}) => [`${schemaName}.${name}`, `${schema || schemaName}.${table}`]);
+      const {name, dependencies} = table,
+            from = `${schemaName}.${name}`;
+
+      if (dependencies.length === 0) return [[from, '*']];
+
+      return _.map(dependencies,
+        ({reference: {schema, table}}) => {
+          const to = `${schema || schemaName}.${table}`;
+          return from === to ? [from, '*'] : [from, to];
+        });
     }
   }
 }

@@ -1,97 +1,97 @@
 usda {
  sr28 {
   FOOD_DES {
-    !NDB_No,
+    !NDB_No text,
     Long_Desc,
     Short_Desc,
-    ComName,
-    ManufacName,
-    Survey,
-    Ref_desc,
-    SciName,
-    N_Factor,
-    Pro_Factor,
-    Fat_Factor,
-    CHO_Factor
+    ComName?,
+    ManufacName?,
+    Survey?,
+    Ref_desc?,
+    Refuse?,
+    SciName?,
+    N_Factor?,
+    Pro_Factor?,
+    Fat_Factor?,
+    CHO_Factor?
   } -> FD_GROUP
 
   FD_GROUP {
-    !FdGrp_Cd,
+    !FdGrp_Cd text,
     FdGrp_Desc
   }
 
   LANGUAL {
-    NDB_No,
+    !NDB_No text,
     !Factor_Code text
   }
 
   LANGDESC {
+    !Factor_Code text,
     Description
-  } -> LANGUAL
+  }
 
   NUT_DATA {
-    !NDB_No,
-    !Nutr_No,
+    !NDB_No text,
+    !Nutr_No text,
     Nutr_Val numeric(10,3),
     Num_Data_Pts? numeric(5),
-    Std_Error numeric(8,3),
-    Ref_NDB_No,
-    Add_Nutr_Mark,
-    Num_Studies numeric(2),
-    Min numeric(10,3),
-    Max numeric(10,3),
-    DF numeric(4),
-    Low_EB numeric(10,3),
-    UpEB numeric(10,3),
-    Stat_cmt,
-    AddMod_Date,
-    CC
-  } ->
-    SRC_CD
-    DERV_CD
+    Std_Error? numeric(8,3),
+    Ref_NDB_No?,
+    Add_Nutr_Mark?,
+    Num_Studies? numeric,
+    Min? numeric(10,3),
+    Max? numeric(10,3),
+    DF? numeric(4),
+    Low_EB? numeric(10,3),
+    Up_EB? numeric(10,3),
+    Stat_cmt?,
+    AddMod_Date?,
+    CC?
+  } -> SRC_CD
+    -> DERIV_CD?
 
   NUTR_DEF {
-    !Nutr_No,
+    !Nutr_No text,
     Units,
-    Tagname,
+    Tagname?,
     NutrDesc,
     Num_Dec,
     SR_Order numeric(6)
   }
 
   SRC_CD {
-    !Src_Cd varchar(2),
+    !Src_Cd text,
     SrcCd_Desc
   }
 
-  DERV_CD {
-    !Deriv_Cd,
+  DERIV_CD {
+    !Deriv_Cd text,
     Deriv_Desc
   }
 
   WEIGHT {
-    !NDB_No,
-    !Seq,
-    Amount numeric(5,3),
+    !NDB_No text,
+    !Seq text,
+    Amount numeric,
     Msre_Desc,
     Gm_Wgt numeric(7,1),
-    Num_Data_Pts numeric(3),
-    Std_Dev numeric(7,3)
+    Num_Data_Pts? numeric(4),
+    Std_Dev? numeric(7,3)
   }
 
   FOOTNOTE {
     NDB_No,
     Footnt_No,
     Footnt_Typ,
-    Nutr_No,
+    Nutr_No?,
     Footnt_Txt
   }
 
   DATSRCLN {
-    !NDB_No,
-    !Nutr_No
-  } ->
-    !DATA_SRC
+    !NDB_No text,
+    !Nutr_No text
+  } -> !DATA_SRC
 
   DATA_SRC {
     !DataSrc_ID text,

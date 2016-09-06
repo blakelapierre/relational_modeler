@@ -7,6 +7,7 @@ import rm_pgsql_grammar from './grammar/RM.ohm.js';
 import rm_pgsql_toObject from './grammar/RM_PGSQL.toObject.semantics';
 
 import GrammarError from './GrammarError';
+import SemanticError from './SemanticError';
 
 const engines = {
   'postgresql': {
@@ -26,7 +27,7 @@ const engines = {
 const api = (modelText, engine = 'postgresql', delimiter = ',', quote = '"', importMethod = 'psql') =>
   getReadyEngine(engine).generator(orderTables(generateModel(modelText, engine)), delimiter, quote, importMethod);
 
-export {api, GrammarError};
+export {api, GrammarError, SemanticError};
 
 function getReadyEngine(name) {
   const engine = engines[name];

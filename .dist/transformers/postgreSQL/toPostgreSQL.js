@@ -12,14 +12,20 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var _SemanticError = require('../../SemanticError');
+
+var _SemanticError2 = _interopRequireDefault(_SemanticError);
+
 var _sql = require('./sql');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 //Should be moved out somewhere else
 var importMethods = {
-  'psql': '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\nrun() {\n     echo "running $1"\n\n     # "cat "/data/$2" | psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER -d $POSTGRES_DATABASE -v ON_ERROR_STOP=1 -c "$1""\n\n      psql -h "$POSTGRES_HOST"       -p "$POSTGRES_PORT"       -d "$POSGRES_DATABASE"       -v ON_ERROR_STOP=1       -U "$POSTGRES_USER"       -x       -c "$1" < $2\n}',
-  'docker': '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\nrun() {\n     echo "running $1"\n\n     docker run --rm -it \\\n                --link postgres-usda \\\n               -v $(pwd)/data:/data:z \\\n               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"${1}\\" < \\"/data/${2}\\""\n}\n'
+  'psql': '#!/bin/bash\n\nPOSTGRES_HOST=localhost\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\nrun() {\n     echo "running $1"\n\n     psql -h "$POSTGRES_HOST"           -p "$POSTGRES_PORT"           -d "$POSGRES_DATABASE"           -v ON_ERROR_STOP=1           -U "$POSTGRES_USER"           -x           -c "$1" < $2\n}',
+  'docker': '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\nrun() {\n     echo "running $1"\n\n     docker run --rm -it \\\n                --link postgres-usda \\\n               -v $(pwd)/data:/data:z \\\n               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"${1}\\" < \\"/data/${2}\\""\n}\n'
 };
 
 function toPostgreSQL(_ref) {
@@ -38,7 +44,7 @@ function toPostgreSQL(_ref) {
 
   model.schemaMap = schemaMap; // mutation of passed object!
 
-  resolveDependencies(schemas, schemaMap);
+  resolveDependencies(schemas, schemaMap, orderedTables);
 
   return {
     schema: [(0, _sql.createDatabase)(model.name)].concat(createSchemas(schemas, schemaMap, orderedTables)),
@@ -52,28 +58,50 @@ function toPostgreSQL(_ref) {
     return schema;
   }
 
-  // This should be broken out into a separate model, but we want the schema map and that is here!
-  function resolveDependencies(schemas, schemaMap) {
-    schemas.forEach(function (_ref2) {
-      var tables = _ref2.tables;
-      return tables.forEach(function (table) {
-        return table.primaryKeys = _lodash2.default.filter(table.attributes, function (a) {
-          return a.primaryKey;
-        });
-      });
+  // This should be broken out into a separate model (module?), but we want the schema map and that is here!
+  function resolveDependencies(schemas, schemaMap, orderedTables) {
+    _lodash2.default.forEach(orderedTables, function (name) {
+      var _name$split = name.split('.');
+
+      var _name$split2 = _slicedToArray(_name$split, 2);
+
+      var schemaName = _name$split2[0];
+      var tableName = _name$split2[1];
+      var schema = schemaMap[schemaName];
+      var table = schema.tableMap[tableName];
+
+      if (!table) throw new _SemanticError2.default('No Table "' + tableName + '!"');
+
+      table.primaryKeys = _lodash2.default.concat(_lodash2.default.filter(modelAttributes, function (a) {
+        return a.primaryKey;
+      }), _lodash2.default.filter(schema.commonAttributes, function (a) {
+        return a.primaryKey;
+      }), _lodash2.default.filter(table.attributes, function (a) {
+        return a.primaryKey;
+      }), _lodash2.default.map(_lodash2.default.filter(table.dependencies, function (d) {
+        return d.primaryKey;
+      }), function (_ref2) {
+        var name = _ref2.name;
+        var _ref2$reference = _ref2.reference;
+        var schemaName = _ref2$reference.schema;
+        var tableName = _ref2$reference.table;
+        return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+          {
+            name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
+          }
+        );
+      }));
     });
+
     schemas.forEach(function (_ref3) {
       var name = _ref3.name;
       var tables = _ref3.tables;
-
-      return tables.forEach(function (table) {
-        var tableName = table.name;
-        var dependencies = table.dependencies;
-
-        return dependencies.forEach(function (_ref4) {
-          var reference = _ref4.reference;
-
-          reference.attribute = schemaMap[reference.schema || name].tableMap[reference.table].primaryKeys[0];
+      return tables.forEach(function (_ref4) {
+        var tableName = _ref4.name;
+        var dependencies = _ref4.dependencies;
+        return dependencies.forEach(function (_ref5) {
+          var reference = _ref5.reference;
+          return reference.attribute = schemaMap[reference.schema || name].tableMap[reference.table].primaryKeys[0];
         });
       });
     });
@@ -96,16 +124,17 @@ function toPostgreSQL(_ref) {
     }
 
     function copy(qualifiedTableName) {
-      return 'BEGIN; COPY ' + qualifiedTableName + ' FROM STDIN WITH CSV DELIMITER \'' + delimiter + '\' QUOTE \'' + quote + '\'; COMMIT;';
+      // should support something like: (${columnList}) so that imports can more easily be customized to the column order of the data file
+      return 'SET client_encoding = \'${ENCODING}\'; BEGIN; COPY ' + qualifiedTableName + ' FROM STDIN WITH CSV DELIMITER \'' + delimiter + '\' QUOTE \'' + quote + '\' ENCODING \'${ENCODING}\' NULL \'\'; COMMIT;';
     }
 
     function fileName(name) {
-      var _name$split = name.split('.');
+      var _name$split3 = name.split('.');
 
-      var _name$split2 = _slicedToArray(_name$split, 2);
+      var _name$split4 = _slicedToArray(_name$split3, 2);
 
-      var schemaName = _name$split2[0];
-      var tableName = _name$split2[1];
+      var schemaName = _name$split4[0];
+      var tableName = _name$split4[1];
 
 
       return schemaName + '/' + tableName + extension;
@@ -140,11 +169,11 @@ function toPostgreSQL(_ref) {
 
     return commands;
 
-    function generateAttribute(_ref5) {
-      var name = _ref5.name;
-      var primaryKey = _ref5.primaryKey;
-      var optional = _ref5.optional;
-      var type = _ref5.type;
+    function generateAttribute(_ref6) {
+      var name = _ref6.name;
+      var primaryKey = _ref6.primaryKey;
+      var optional = _ref6.optional;
+      var type = _ref6.type;
 
       var parts = [name, type ? formatType(type) : 'text'];
 
@@ -182,21 +211,23 @@ function toPostgreSQL(_ref) {
       }
     }
 
-    function generateDependency(_ref6) {
-      var preArity = _ref6.preArity;
-      var postArity = _ref6.postArity;
-      var _ref6$reference = _ref6.reference;
-      var schema = _ref6$reference.schema;
-      var table = _ref6$reference.table;
-      var attribute = _ref6$reference.attribute;
+    function generateDependency(_ref7) {
+      var name = _ref7.name;
+      var preArity = _ref7.preArity;
+      var postArity = _ref7.postArity;
+      var _ref7$reference = _ref7.reference;
+      var schema = _ref7$reference.schema;
+      var table = _ref7$reference.table;
+      var attribute = _ref7$reference.attribute;
+      var optional = _ref7.optional;
 
-      var id = (schema === undefined ? '' : (schema || schemaName) + '_') + (table + '_' + (attribute || { name: 'id' }).name),
+      var id = name || (schema === undefined ? '' : (schema || schemaName) + '_') + (table + '_' + (attribute || { name: 'id' }).name),
           references = (schema || schemaName) + '.' + table;
 
       var type = (attribute || { type: 'bigint' }).type;
 
       if (typeof type !== 'string') type = type.type;
-      type = type + ' NOT NULL';
+      if (!optional) type = type + ' NOT NULL';
 
       if (preArity === 1 && postArity === 1) type += ' UNIQUE';
 
@@ -206,3 +237,11 @@ function toPostgreSQL(_ref) {
 }
 
 // get primaryKeys() { return _.filter(attributes, a => a.primaryKey); }
+
+var Table = function Table(name, attributes, dependencies) {
+  _classCallCheck(this, Table);
+
+  this.name = name;
+  this.attributes = attributes;
+  this.dependencies = dependencies;
+};

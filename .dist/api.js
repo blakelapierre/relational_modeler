@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.GrammarError = exports.api = undefined;
+exports.SemanticError = exports.GrammarError = exports.api = undefined;
 
 var _ohmJs = require('ohm-js');
 
@@ -28,6 +28,10 @@ var _RM_PGSQLToObject2 = _interopRequireDefault(_RM_PGSQLToObject);
 var _GrammarError = require('./GrammarError');
 
 var _GrammarError2 = _interopRequireDefault(_GrammarError);
+
+var _SemanticError = require('./SemanticError');
+
+var _SemanticError2 = _interopRequireDefault(_SemanticError);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -56,6 +60,7 @@ var api = function api(modelText) {
 
 exports.api = api;
 exports.GrammarError = _GrammarError2.default;
+exports.SemanticError = _SemanticError2.default;
 
 
 function getReadyEngine(name) {

@@ -38,13 +38,17 @@ function orderTables(model) {
     function getTableLinks(table) {
       var name = table.name;
       var dependencies = table.dependencies;
+      var from = schemaName + '.' + name;
 
-      if (dependencies.length === 0) return [[schemaName + '.' + name, '*']];
+      if (dependencies.length === 0) return [[from, '*']];
+
       return _lodash2.default.map(dependencies, function (_ref2) {
         var _ref2$reference = _ref2.reference;
         var schema = _ref2$reference.schema;
         var table = _ref2$reference.table;
-        return [schemaName + '.' + name, (schema || schemaName) + '.' + table];
+
+        var to = (schema || schemaName) + '.' + table;
+        return from === to ? [from, '*'] : [from, to];
       });
     }
   }

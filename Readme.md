@@ -1,6 +1,6 @@
 Try the web interface at: [https://blakelapierre.github.io/relational_modeler](https://blakelapierre.github.io/relational_modeler)
 
-Sample Model:
+Sample Models:
 ````
 database_name{
   schema_name {
@@ -12,6 +12,15 @@ database_name{
     foreign_table {
       !primaryKey,
       attribute? boolean
+    }
+  }
+}
+
+
+experiments { !id, inserted_at timestamp } {
+  binary {
+    coin_flip {
+      outcome { 'H', 'T' }
     }
   }
 }

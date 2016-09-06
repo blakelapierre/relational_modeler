@@ -42,11 +42,14 @@ export default {
     return join({type: 'Set', values});
   },
 
-  Dependency (preArity, glyph, postArity, reference) {
+  Dependency (preArity, glyph, postArity, primaryKey, reference, optional, name) {
     return join({
       preArity: first(preArity) || '*',
       postArity: first(postArity) || '*',
-      reference
+      primaryKey: first(primaryKey) === '!',
+      reference,
+      optional,
+      name: (name || '').length > 0 ? name : undefined
     });
   },
 
