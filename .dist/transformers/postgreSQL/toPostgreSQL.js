@@ -77,14 +77,22 @@ function toPostgreSQL(_ref) {
         });
       });
     });
+  }
 
-    function getTable(schemaMap, schemaName, tableName) {
-      var table = schemaMap[schemaName].tableMap[tableName];
+  function getTable(schemaMap, schemaName, tableName) {
+    var table = getSchema(schemaMap, schemaName).tableMap[tableName];
 
-      if (!table) throw new _SemanticError2.default('No Table "' + schemaName + '.' + tableName + '"!');
+    if (!table) throw new _SemanticError2.default('No Table "' + schemaName + '.' + tableName + '"!');
 
-      return table;
-    }
+    return table;
+  }
+
+  function getSchema(schemaMap, schemaName) {
+    var schema = schemaMap[schemaName];
+
+    if (!schema) throw new _SemanticError2.default('No Schema "' + schemaName + '"!');
+
+    return schema;
   }
 
   function createSchemas(schemas, schemaMap, orderedTables) {
