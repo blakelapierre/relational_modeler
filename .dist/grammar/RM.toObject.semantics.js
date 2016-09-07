@@ -25,10 +25,16 @@ exports.default = {
   Table: function Table(name, attributes, dependencies) {
     return (0, _util.join)({ name: name, attributes: (0, _util.first)(attributes), dependencies: dependencies });
   },
-  Attribute: function Attribute(primaryKey, name, optional, type) {
+  Attribute: function Attribute(primaryKey, name, optional, type, check) {
     primaryKey = (0, _util.first)(primaryKey) === '!';
     type = (0, _util.first)(type) || (primaryKey ? defaultPrimaryKeyType : defaultType);
-    return (0, _util.join)({ name: name, primaryKey: primaryKey, optional: (0, _util.first)(optional) === '?', type: type });
+    return (0, _util.join)({
+      name: name,
+      primaryKey: primaryKey,
+      optional: (0, _util.first)(optional) === '?',
+      type: type,
+      check: (0, _util.first)(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
+    });
   },
   Type: function Type(type) {
     return (0, _util.single)(type);
@@ -39,6 +45,24 @@ exports.default = {
   Set: function Set(values) {
     return (0, _util.join)({ type: 'Set', values: values });
   },
+
+
+  Constraint: function Constraint(operator, value) {
+    return (0, _util.join)({ operator: operator, value: value });
+  },
+
+  Operator: function Operator(symbol) {
+    return (0, _util.single)(symbol);
+  },
+
+  CheckName: function CheckName(name) {
+    return (0, _util.join)({ check: 'Name', name: name });
+  },
+
+  CheckNumber: function CheckNumber(number) {
+    return (0, _util.join)({ check: 'Number', number: number });
+  },
+
   Dependency: function Dependency(preArity, glyph, postArity, primaryKey, reference, optional, name) {
     return (0, _util.join)({
       preArity: (0, _util.first)(preArity) || '*',

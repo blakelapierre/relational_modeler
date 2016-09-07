@@ -929,9 +929,9 @@ function generateModel(text, engineName) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+      value: true
 });
-exports.default = "RM {\n  Model = name AttributeList? Contained<Schema*>\n  Schema = name AttributeList? Contained<Table*>\n\n  Table = name AttributeList? Dependency*\n\n  AttributeList = Contained<ListOf<Attribute, \",\">>\n  Attribute = PrimaryKey? name Optional? Type?\n\n  PrimaryKey = \"!\"\n  Optional = \"?\"\n\n  Type = List\n       | Set\n\n  List = SquareContained<ListOf<Value, \",\">>\n  Set = Contained<ListOf<Value, \",\">>\n  Value = digit+\n        | CContained<\"'\", name, \"'\">\n\n  Dependency = arity? dependency_glyph arity? PrimaryKey? Reference Optional? RoundContained<ReferenceName>?\n\n  Reference = SchemaTableName\n            | TableName\n\n  ReferenceName = name\n\n  SchemaTableName = name \".\" name\n  TableName = name\n\n  Contained<element> = CContained<\"{\", element, \"}\">\n  SquareContained<element> = CContained<\"[\", element, \"]\">\n  RoundContained<element> = CContained<\"(\", element, \")\">\n\n  CContained<open, element, close> = open element close\n\n  name = first_character additional_character*\n  first_character = letter | \"_\"\n  additional_character = first_character | alnum\n\n  arity = \"*\" | \"+\" | number\n  dependency_glyph = \"->\"\n\n  number = digit+\n}\n\nRM_PGSQL <: RM {\n  Type := List\n        | Set\n        | SQLType\n\n  SQLType = \"bigint\"\n          | \"smallint\"\n          | \"integer\"\n          | \"real\"\n          | \"double precision\"\n          | \"smallserial\"\n          | \"serial\"\n          | \"bigserial\"\n          | \"money\"\n          | \"blob\"\n          | \"bytea\"\n          | \"boolean\"\n          | \"text\"\n          | \"timestamp\"\n          | \"date\"\n          | \"time\"\n          | \"interval\"\n          | \"point\"\n          | \"line\"\n          | \"lseq\"\n          | \"box\"\n          | \"path\"\n          | \"polygon\"\n          | \"circle\"\n          | \"cidr\"\n          | \"inet\"\n          | \"macaddr\"\n          | \"json\"\n          | \"jsonb\"\n          | \"int4range\"\n          | \"int8range\"\n          | \"numrange\"\n          | \"tsrange\"\n          | \"tstzrange\"\n          | \"daterange\"\n          | Numeric\n          | VarChar\n\n  Numeric = numeric RoundContained<NumericParameters>?\n  NumericParameters = Precision OptionalScale?\n  Precision = number\n  OptionalScale = \",\" number\n\n  numeric = \"numeric\" | \"decimal\"\n\n  VarChar = \"varchar\" RoundContained<number>?\n}";
+exports.default = "RM {\n  Model = name AttributeList? Contained<Schema*>\n  Schema = name AttributeList? Contained<Table*>\n\n  Table = name AttributeList? Dependency*\n\n  AttributeList = Contained<ListOf<Attribute, \",\">>\n  Attribute = PrimaryKey? name Optional? Type? Constraint?\n\n  PrimaryKey = \"!\"\n  Optional = \"?\"\n\n  Type = List\n       | Set\n\n  List = SquareContained<ListOf<Value, \",\">>\n  Set = Contained<ListOf<Value, \",\">>\n  Value = digit+\n        | CContained<\"'\", name, \"'\">\n\n  Constraint = Operator Check\n  Operator = \">\"\n           | \"<\"\n           | \">=\"\n           | \"<=\"\n           | \"==\"\n           | \"<>\"\n           | \"!=\"\n  Check = CheckName\n        | CheckNumber\n\n  CheckName = name\n  CheckNumber = number\n\n  Dependency = arity? dependency_glyph arity? PrimaryKey? Reference Optional? RoundContained<ReferenceName>?\n\n  Reference = SchemaTableName\n            | TableName\n\n  ReferenceName = name\n\n  SchemaTableName = name \".\" name\n  TableName = name\n\n  Contained<element> = CContained<\"{\", element, \"}\">\n  SquareContained<element> = CContained<\"[\", element, \"]\">\n  RoundContained<element> = CContained<\"(\", element, \")\">\n\n  CContained<open, element, close> = open element close\n\n  name = first_character additional_character*\n  first_character = letter | \"_\"\n  additional_character = first_character | alnum\n\n  arity = \"*\" | \"+\" | number\n  dependency_glyph = \"->\"\n\n  number = digit+\n}\n\nRM_PGSQL <: RM {\n  Type := List\n        | Set\n        | SQLType\n\n  SQLType = \"bigint\"\n          | \"smallint\"\n          | \"integer\"\n          | \"real\"\n          | \"double precision\"\n          | \"smallserial\"\n          | \"serial\"\n          | \"bigserial\"\n          | \"money\"\n          | \"blob\"\n          | \"bytea\"\n          | \"boolean\"\n          | \"text\"\n          | \"timestamp\"\n          | \"date\"\n          | \"time\"\n          | \"interval\"\n          | \"point\"\n          | \"line\"\n          | \"lseq\"\n          | \"box\"\n          | \"path\"\n          | \"polygon\"\n          | \"circle\"\n          | \"cidr\"\n          | \"inet\"\n          | \"macaddr\"\n          | \"json\"\n          | \"jsonb\"\n          | \"int4range\"\n          | \"int8range\"\n          | \"numrange\"\n          | \"tsrange\"\n          | \"tstzrange\"\n          | \"daterange\"\n          | Numeric\n          | VarChar\n\n  Numeric = numeric RoundContained<NumericParameters>?\n  NumericParameters = Precision OptionalScale?\n  Precision = number\n  OptionalScale = \",\" number\n\n  numeric = \"numeric\" | \"decimal\"\n\n  VarChar = \"varchar\" RoundContained<number>?\n}";
 },{}],9:[function(require,module,exports){
 'use strict';
 
@@ -960,10 +960,16 @@ exports.default = {
   Table: function Table(name, attributes, dependencies) {
     return (0, _util.join)({ name: name, attributes: (0, _util.first)(attributes), dependencies: dependencies });
   },
-  Attribute: function Attribute(primaryKey, name, optional, type) {
+  Attribute: function Attribute(primaryKey, name, optional, type, check) {
     primaryKey = (0, _util.first)(primaryKey) === '!';
     type = (0, _util.first)(type) || (primaryKey ? defaultPrimaryKeyType : defaultType);
-    return (0, _util.join)({ name: name, primaryKey: primaryKey, optional: (0, _util.first)(optional) === '?', type: type });
+    return (0, _util.join)({
+      name: name,
+      primaryKey: primaryKey,
+      optional: (0, _util.first)(optional) === '?',
+      type: type,
+      check: (0, _util.first)(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
+    });
   },
   Type: function Type(type) {
     return (0, _util.single)(type);
@@ -974,6 +980,24 @@ exports.default = {
   Set: function Set(values) {
     return (0, _util.join)({ type: 'Set', values: values });
   },
+
+
+  Constraint: function Constraint(operator, value) {
+    return (0, _util.join)({ operator: operator, value: value });
+  },
+
+  Operator: function Operator(symbol) {
+    return (0, _util.single)(symbol);
+  },
+
+  CheckName: function CheckName(name) {
+    return (0, _util.join)({ check: 'Name', name: name });
+  },
+
+  CheckNumber: function CheckNumber(number) {
+    return (0, _util.join)({ check: 'Number', number: number });
+  },
+
   Dependency: function Dependency(preArity, glyph, postArity, primaryKey, reference, optional, name) {
     return (0, _util.join)({
       preArity: (0, _util.first)(preArity) || '*',
@@ -1308,12 +1332,28 @@ function toPostgreSQL(_ref) {
       var primaryKey = _ref5.primaryKey;
       var optional = _ref5.optional;
       var type = _ref5.type;
+      var check = _ref5.check;
 
       var parts = [name, type ? formatType(type) : 'text'];
 
       if (primaryKey && optional) throw new Error(schemaName + '.' + tableName + '.' + name + ' cannot be both a primary key and optional!'); // maybe outlaw this in the grammar?
 
       if (!primaryKey && !optional) parts.push('NOT NULL');
+
+      if (check) {
+        (function () {
+          var operator = check.operator;
+          var value = check.value;
+
+
+          if (value.check === 'Number') parts.push('CHECK (' + name + ' ' + operator + ' ' + value.number + ')');else if (value.check === 'Name') {
+            if (!_lodash2.default.some(attributes, function (attribute) {
+              return attribute.name === value.name;
+            })) throw new _SemanticError2.default('Cannot check against "' + value.name + '", it is not an attribute of "' + table.name + '"!'); // should also type-check here
+            parts.push('CHECK (' + name + ' ' + operator + ' ' + value.name + ')');
+          } else throw new Error('!', value);
+        })();
+      }
 
       return parts.join(' ');
 

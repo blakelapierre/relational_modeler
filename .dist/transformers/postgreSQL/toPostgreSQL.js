@@ -162,12 +162,28 @@ function toPostgreSQL(_ref) {
       var primaryKey = _ref5.primaryKey;
       var optional = _ref5.optional;
       var type = _ref5.type;
+      var check = _ref5.check;
 
       var parts = [name, type ? formatType(type) : 'text'];
 
       if (primaryKey && optional) throw new Error(schemaName + '.' + tableName + '.' + name + ' cannot be both a primary key and optional!'); // maybe outlaw this in the grammar?
 
       if (!primaryKey && !optional) parts.push('NOT NULL');
+
+      if (check) {
+        (function () {
+          var operator = check.operator;
+          var value = check.value;
+
+
+          if (value.check === 'Number') parts.push('CHECK (' + name + ' ' + operator + ' ' + value.number + ')');else if (value.check === 'Name') {
+            if (!_lodash2.default.some(attributes, function (attribute) {
+              return attribute.name === value.name;
+            })) throw new _SemanticError2.default('Cannot check against "' + value.name + '", it is not an attribute of "' + table.name + '"!'); // should also type-check here
+            parts.push('CHECK (' + name + ' ' + operator + ' ' + value.name + ')');
+          } else throw new Error('!', value);
+        })();
+      }
 
       return parts.join(' ');
 
