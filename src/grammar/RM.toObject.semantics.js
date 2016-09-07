@@ -1,11 +1,11 @@
-import {join, first} from './util';
+import {join, first, prepend} from './util';
 
 const defaultType = 'text',
       defaultPrimaryKeyType = 'bigserial';
 
 export default {
   ListOf_some (element, separator, rest) {
-    return [element.toObject()].concat(rest.toObject());
+    return prepend(element, rest);
   },
 
   CContained (open, element, close) {

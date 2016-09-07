@@ -9,3 +9,5 @@ export function join(obj) {
 }
 
 export function first(obj) { return obj.toObject()[0]; }
+
+export function prepend(first, rest) { return [first.toObject()].concat(rest.toObject()); }
