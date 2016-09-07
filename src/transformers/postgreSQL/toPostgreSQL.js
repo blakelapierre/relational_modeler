@@ -86,14 +86,22 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
       tables.forEach(({name: tableName, dependencies}) =>
         dependencies.forEach(({reference}) =>
           reference.attribute = getTable(schemaMap, reference.schema || name, reference.table).primaryKeys[0])));
+  }
 
-    function getTable(schemaMap, schemaName, tableName) {
-      const table = schemaMap[schemaName].tableMap[tableName];
+  function getTable(schemaMap, schemaName, tableName) {
+    const table = getSchema(schemaMap, schemaName).tableMap[tableName];
 
-      if (!table) throw new SemanticError(`No Table "${schemaName}.${tableName}"!`);
+    if (!table) throw new SemanticError(`No Table "${schemaName}.${tableName}"!`);
 
-      return table;
-    }
+    return table;
+  }
+
+  function getSchema(schemaMap, schemaName) {
+    const schema = schemaMap[schemaName];
+
+    if (!schema) throw new SemanticError(`No Schema "${schemaName}"!`);
+
+    return schema;
   }
 
   function createSchemas(schemas, schemaMap, orderedTables) {
