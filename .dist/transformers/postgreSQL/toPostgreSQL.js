@@ -291,8 +291,6 @@ var Table = function () {
       var schemaMap = model.schemaMap;
 
 
-      console.log({ schema: schema });
-
       return _lodash2.default.concat(_lodash2.default.filter(modelAttributes, function (a) {
         return a.primaryKey;
       }), _lodash2.default.filter(schemaAttributes, function (a) {

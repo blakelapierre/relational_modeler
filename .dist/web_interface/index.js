@@ -949,7 +949,7 @@ exports.default = {
     return (0, _util.prepend)(element, rest);
   },
   CContained: function CContained(open, element, close) {
-    return element.toObject();
+    return (0, _util.single)(element);
   },
   Model: function Model(name, commonAttributes, schemas) {
     return (0, _util.join)({ name: name, commonAttributes: (0, _util.first)(commonAttributes) || [], schemas: schemas });
@@ -966,7 +966,7 @@ exports.default = {
     return (0, _util.join)({ name: name, primaryKey: primaryKey, optional: (0, _util.first)(optional) === '?', type: type });
   },
   Type: function Type(type) {
-    return type.toObject();
+    return (0, _util.single)(type);
   },
   List: function List(values) {
     return (0, _util.join)({ type: 'List', values: values });
@@ -1041,6 +1041,8 @@ Object.defineProperty(exports, "__esModule", {
 exports.join = join;
 exports.first = first;
 exports.prepend = prepend;
+exports.single = single;
+// note: this only works if you are relying on toObject() being called
 function join(obj) {
   for (var key in obj) {
     var value = obj[key];
@@ -1057,6 +1059,10 @@ function first(obj) {
 
 function prepend(first, rest) {
   return [first.toObject()].concat(rest.toObject());
+}
+
+function single(obj) {
+  return obj.toObject();
 }
 },{}],12:[function(require,module,exports){
 'use strict';
@@ -1430,8 +1436,6 @@ var Table = function () {
       var modelAttributes = model.commonAttributes;
       var schemaMap = model.schemaMap;
 
-
-      console.log({ schema: schema });
 
       return _lodash2.default.concat(_lodash2.default.filter(modelAttributes, function (a) {
         return a.primaryKey;

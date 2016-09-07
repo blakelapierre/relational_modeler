@@ -14,7 +14,7 @@ exports.default = {
     return (0, _util.prepend)(element, rest);
   },
   CContained: function CContained(open, element, close) {
-    return element.toObject();
+    return (0, _util.single)(element);
   },
   Model: function Model(name, commonAttributes, schemas) {
     return (0, _util.join)({ name: name, commonAttributes: (0, _util.first)(commonAttributes) || [], schemas: schemas });
@@ -31,7 +31,7 @@ exports.default = {
     return (0, _util.join)({ name: name, primaryKey: primaryKey, optional: (0, _util.first)(optional) === '?', type: type });
   },
   Type: function Type(type) {
-    return type.toObject();
+    return (0, _util.single)(type);
   },
   List: function List(values) {
     return (0, _util.join)({ type: 'List', values: values });
