@@ -4,6 +4,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.default = toPostgreSQL;
@@ -34,8 +36,11 @@ function toPostgreSQL(_ref) {
   var delimiter = arguments.length <= 1 || arguments[1] === undefined ? ',' : arguments[1];
   var quote = arguments.length <= 2 || arguments[2] === undefined ? '"' : arguments[2];
   var importMethod = arguments.length <= 3 || arguments[3] === undefined ? 'psql' : arguments[3];
-  var modelAttributes = model.commonAttributes;
-  var schemas = model.schemas;
+
+  model = new Model(model);
+  var _model = model;
+  var modelAttributes = _model.commonAttributes;
+  var schemas = _model.schemas;
 
 
   var schemaMap = _lodash2.default.transform(schemas, function (map, schema) {
@@ -60,51 +65,26 @@ function toPostgreSQL(_ref) {
 
   // This should be broken out into a separate model (module?), but we want the schema map and that is here!
   function resolveDependencies(schemas, schemaMap, orderedTables) {
-    _lodash2.default.forEach(orderedTables, function (name) {
-      var _name$split = name.split('.');
-
-      var _name$split2 = _slicedToArray(_name$split, 2);
-
-      var schemaName = _name$split2[0];
-      var tableName = _name$split2[1];
-      var schema = schemaMap[schemaName];
-      var table = schema.tableMap[tableName];
-
-      if (!table) throw new _SemanticError2.default('No Table "' + tableName + '!"');
-
-      table.primaryKeys = _lodash2.default.concat(_lodash2.default.filter(modelAttributes, function (a) {
-        return a.primaryKey;
-      }), _lodash2.default.filter(schema.commonAttributes, function (a) {
-        return a.primaryKey;
-      }), _lodash2.default.filter(table.attributes, function (a) {
-        return a.primaryKey;
-      }), _lodash2.default.map(_lodash2.default.filter(table.dependencies, function (d) {
-        return d.primaryKey;
-      }), function (_ref2) {
-        var name = _ref2.name;
-        var _ref2$reference = _ref2.reference;
-        var schemaName = _ref2$reference.schema;
-        var tableName = _ref2$reference.table;
-        return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
-          {
-            name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
-          }
-        );
-      }));
-    });
-
-    schemas.forEach(function (_ref3) {
-      var name = _ref3.name;
-      var tables = _ref3.tables;
-      return tables.forEach(function (_ref4) {
-        var tableName = _ref4.name;
-        var dependencies = _ref4.dependencies;
-        return dependencies.forEach(function (_ref5) {
-          var reference = _ref5.reference;
-          return reference.attribute = schemaMap[reference.schema || name].tableMap[reference.table].primaryKeys[0];
+    schemas.forEach(function (_ref2) {
+      var name = _ref2.name;
+      var tables = _ref2.tables;
+      return tables.forEach(function (_ref3) {
+        var tableName = _ref3.name;
+        var dependencies = _ref3.dependencies;
+        return dependencies.forEach(function (_ref4) {
+          var reference = _ref4.reference;
+          return reference.attribute = getTable(schemaMap, reference.schema || name, reference.table).primaryKeys[0];
         });
       });
     });
+
+    function getTable(schemaMap, schemaName, tableName) {
+      var table = schemaMap[schemaName].tableMap[tableName];
+
+      if (!table) throw new _SemanticError2.default('No Table "' + schemaName + '.' + tableName + '"!');
+
+      return table;
+    }
   }
 
   function createSchemas(schemas, schemaMap, orderedTables) {
@@ -129,12 +109,12 @@ function toPostgreSQL(_ref) {
     }
 
     function fileName(name) {
-      var _name$split3 = name.split('.');
+      var _name$split = name.split('.');
 
-      var _name$split4 = _slicedToArray(_name$split3, 2);
+      var _name$split2 = _slicedToArray(_name$split, 2);
 
-      var schemaName = _name$split4[0];
-      var tableName = _name$split4[1];
+      var schemaName = _name$split2[0];
+      var tableName = _name$split2[1];
 
 
       return schemaName + '/' + tableName + extension;
@@ -169,11 +149,11 @@ function toPostgreSQL(_ref) {
 
     return commands;
 
-    function generateAttribute(_ref6) {
-      var name = _ref6.name;
-      var primaryKey = _ref6.primaryKey;
-      var optional = _ref6.optional;
-      var type = _ref6.type;
+    function generateAttribute(_ref5) {
+      var name = _ref5.name;
+      var primaryKey = _ref5.primaryKey;
+      var optional = _ref5.optional;
+      var type = _ref5.type;
 
       var parts = [name, type ? formatType(type) : 'text'];
 
@@ -211,15 +191,15 @@ function toPostgreSQL(_ref) {
       }
     }
 
-    function generateDependency(_ref7) {
-      var name = _ref7.name;
-      var preArity = _ref7.preArity;
-      var postArity = _ref7.postArity;
-      var _ref7$reference = _ref7.reference;
-      var schema = _ref7$reference.schema;
-      var table = _ref7$reference.table;
-      var attribute = _ref7$reference.attribute;
-      var optional = _ref7.optional;
+    function generateDependency(_ref6) {
+      var name = _ref6.name;
+      var preArity = _ref6.preArity;
+      var postArity = _ref6.postArity;
+      var _ref6$reference = _ref6.reference;
+      var schema = _ref6$reference.schema;
+      var table = _ref6$reference.table;
+      var attribute = _ref6$reference.attribute;
+      var optional = _ref6.optional;
 
       var id = name || (schema === undefined ? '' : (schema || schemaName) + '_') + (table + '_' + (attribute || { name: 'id' }).name),
           references = (schema || schemaName) + '.' + table;
@@ -238,10 +218,94 @@ function toPostgreSQL(_ref) {
 
 // get primaryKeys() { return _.filter(attributes, a => a.primaryKey); }
 
-var Table = function Table(name, attributes, dependencies) {
-  _classCallCheck(this, Table);
+var Model = function Model(_ref7) {
+  var _this = this;
 
+  var commonAttributes = _ref7.commonAttributes;
+  var name = _ref7.name;
+  var schemas = _ref7.schemas;
+
+  _classCallCheck(this, Model);
+
+  this.commonAttributes = commonAttributes;
   this.name = name;
-  this.attributes = attributes;
-  this.dependencies = dependencies;
+  this.schemas = _lodash2.default.map(schemas, function (schema) {
+    return new Schema(_this, schema);
+  });
 };
+
+var Schema = function Schema(model, _ref8) {
+  var _this2 = this;
+
+  var name = _ref8.name;
+  var commonAttributes = _ref8.commonAttributes;
+  var tables = _ref8.tables;
+
+  _classCallCheck(this, Schema);
+
+  this.model = model;
+  this.name = name;
+  this.commonAttributes = commonAttributes;
+  this.tables = _lodash2.default.map(tables, function (table) {
+    return new Table(_this2, table);
+  });
+};
+
+var Table = function () {
+  function Table(schema, _ref9) {
+    var name = _ref9.name;
+    var attributes = _ref9.attributes;
+    var dependencies = _ref9.dependencies;
+
+    _classCallCheck(this, Table);
+
+    this.schema = schema;
+    this.name = name;
+    this.attributes = attributes;
+    this.dependencies = dependencies;
+  }
+
+  _createClass(Table, [{
+    key: 'model',
+    get: function get() {
+      return schema.model;
+    }
+  }, {
+    key: 'primaryKeys',
+    get: function get() {
+      // console.log({this});
+      var schema = this.schema;
+      var tableAttributes = this.attributes;
+      var dependencies = this.dependencies;
+      var schemaAttributes = schema.commonAttributes;
+      var model = schema.model;
+      var modelAttributes = model.commonAttributes;
+      var schemaMap = model.schemaMap;
+
+
+      console.log({ schema: schema });
+
+      return _lodash2.default.concat(_lodash2.default.filter(modelAttributes, function (a) {
+        return a.primaryKey;
+      }), _lodash2.default.filter(schemaAttributes, function (a) {
+        return a.primaryKey;
+      }), _lodash2.default.filter(tableAttributes, function (a) {
+        return a.primaryKey;
+      }), _lodash2.default.map(_lodash2.default.filter(dependencies, function (d) {
+        return d.primaryKey;
+      }), function (_ref10) {
+        var name = _ref10.name;
+        var _ref10$reference = _ref10.reference;
+        var schemaName = _ref10$reference.schema;
+        var tableName = _ref10$reference.table;
+        return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+          {
+            name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
+          }
+        );
+      }));
+    }
+  }]);
+
+  return Table;
+}();

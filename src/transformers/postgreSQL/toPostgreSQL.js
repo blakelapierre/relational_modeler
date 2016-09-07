@@ -61,6 +61,7 @@ run() {
 };
 
 export default function toPostgreSQL({model, orderedTables}, delimiter = ',', quote = '"', importMethod = 'psql') {
+  model = new Model(model);
   const {commonAttributes: modelAttributes, schemas} = model;
 
   const schemaMap = _.transform(schemas, (map, schema) => map[schema.name] = addTableMap(schema), {});
@@ -81,32 +82,18 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
   // This should be broken out into a separate model (module?), but we want the schema map and that is here!
   function resolveDependencies(schemas, schemaMap, orderedTables) {
-    _.forEach(orderedTables, name => {
-      const [schemaName, tableName] = name.split('.'),
-            schema = schemaMap[schemaName],
-            table = schema.tableMap[tableName];
-
-      if (!table) throw new SemanticError(`No Table "${tableName}!"`);
-
-      table.primaryKeys =
-        _.concat(
-          _.filter(modelAttributes, a => a.primaryKey),
-          _.filter(schema.commonAttributes, a => a.primaryKey),
-          _.filter(table.attributes, a => a.primaryKey),
-          _.map(
-            _.filter(table.dependencies, d => d.primaryKey),
-              ({name, reference: {schema: schemaName, table: tableName}}) => //console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
-              ({
-                name: name ||
-                      ((schemaName === undefined ? '' : `${schemaName || schema.name}_`) +
-                      `${tableName}_${((schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0]) || {name: 'id'}).name}`)
-              })));
-    });
-
     schemas.forEach(({name, tables}) =>
       tables.forEach(({name: tableName, dependencies}) =>
         dependencies.forEach(({reference}) =>
-          reference.attribute = schemaMap[reference.schema || name].tableMap[reference.table].primaryKeys[0])));
+          reference.attribute = getTable(schemaMap, reference.schema || name, reference.table).primaryKeys[0])));
+
+    function getTable(schemaMap, schemaName, tableName) {
+      const table = schemaMap[schemaName].tableMap[tableName];
+
+      if (!table) throw new SemanticError(`No Table "${schemaName}.${tableName}"!`);
+
+      return table;
+    }
   }
 
   function createSchemas(schemas, schemaMap, orderedTables) {
@@ -217,12 +204,52 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
 // get primaryKeys() { return _.filter(attributes, a => a.primaryKey); }
 
+class Model {
+  constructor ({commonAttributes, name, schemas}) {
+    this.commonAttributes = commonAttributes;
+    this.name = name;
+    this.schemas = _.map(schemas, schema => new Schema(this, schema));
+  }
+}
 
+class Schema {
+  constructor (model, {name, commonAttributes, tables}) {
+    this.model = model;
+    this.name = name;
+    this.commonAttributes = commonAttributes;
+    this.tables = _.map(tables, table => new Table(this, table));
+  }
+}
 
 class Table {
-  constructor(name, attributes, dependencies) {
+  constructor (schema, {name, attributes, dependencies}) {
+    this.schema = schema;
     this.name = name;
     this.attributes = attributes;
     this.dependencies = dependencies;
+  }
+
+  get model() { return schema.model; }
+
+  get primaryKeys() {
+    // console.log({this});
+    const {schema, attributes: tableAttributes, dependencies} = this,
+          {commonAttributes: schemaAttributes, model} = schema,
+          {commonAttributes: modelAttributes, schemaMap} = model;
+
+    console.log({schema});
+
+    return _.concat(
+      _.filter(modelAttributes, a => a.primaryKey),
+      _.filter(schemaAttributes, a => a.primaryKey),
+      _.filter(tableAttributes, a => a.primaryKey),
+      _.map(
+        _.filter(dependencies, d => d.primaryKey),
+          ({name, reference: {schema: schemaName, table: tableName}}) => //console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+          ({
+            name: name ||
+                  ((schemaName === undefined ? '' : `${schemaName || schema.name}_`) +
+                  `${tableName}_${((schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0]) || {name: 'id'}).name}`)
+          })));
   }
 }

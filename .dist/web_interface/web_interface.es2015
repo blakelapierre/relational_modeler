@@ -5,25 +5,37 @@ import {api, GrammarError, SemanticError} from '../api';
 
 const delimiter = '^', quote = '~';
 
-const currentEngine = 'postgresql';
-
 document.addEventListener('DOMContentLoaded', () => {
   const modelArea = document.getElementsByTagName('modelarea')[0],
         modelAreaTextArea = modelArea.getElementsByTagName('textarea')[0],
         errorArea = modelArea.getElementsByTagName('errorarea')[0],
         resultArea = document.getElementsByTagName('resultarea')[0],
         sqlArea = document.getElementsByTagName('sqlarea')[0],
+        sqlAreaSelect = sqlArea.getElementsByTagName('select')[0],
         sqlAreaTextArea = sqlArea.getElementsByTagName('textarea')[0],
         importArea = document.getElementsByTagName('importarea')[0],
+        importAreaSelect = importArea.getElementsByTagName('select')[0],
         importAreaTextArea = importArea.getElementsByTagName('textarea')[0];
 
+  let currentEngine = sqlAreaSelect.options[sqlAreaSelect.selectedIndex].value,
+      importMethod = importAreaSelect.options[importAreaSelect.selectedIndex].value;
+
   modelAreaTextArea.addEventListener('keyup', ({target}) => a(target.value));
+
+  sqlAreaSelect.addEventListener('change', () => {
+    currentEngine = sqlAreaSelect.options[sqlAreaSelect.selectedIndex].value;
+    a(modelAreaTextArea.value);
+  });
+  importArea.addEventListener('change', () => {
+    importMethod = importAreaSelect.options[importAreaSelect.selectedIndex].value;
+    a(modelAreaTextArea.value);
+  });
 
   a(modelAreaTextArea.value);
 
   function a(value) {
     try {
-      const {schema, imports} = api(value, currentEngine, delimiter, quote);
+      const {schema, imports} = api(value, currentEngine, delimiter, quote, importMethod);
 
       sqlAreaTextArea.value = schema.join('\n') + '\n';
       importAreaTextArea.value = imports.join('\n') + '\n';
