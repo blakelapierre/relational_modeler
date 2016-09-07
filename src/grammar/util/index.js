@@ -1,3 +1,4 @@
+// note: this only works if you are relying on toObject() being called
 export function join(obj) {
   for (let key in obj) {
     const value = obj[key];
@@ -11,3 +12,5 @@ export function join(obj) {
 export function first(obj) { return obj.toObject()[0]; }
 
 export function prepend(first, rest) { return [first.toObject()].concat(rest.toObject()); }
+
+export function single(obj) { return obj.toObject(); }

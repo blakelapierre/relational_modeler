@@ -1,4 +1,4 @@
-import {join, first, prepend} from './util';
+import {join, first, prepend, single} from './util';
 
 const defaultType = 'text',
       defaultPrimaryKeyType = 'bigserial';
@@ -9,7 +9,7 @@ export default {
   },
 
   CContained (open, element, close) {
-    return element.toObject();
+    return single(element);
   },
 
   Model (name, commonAttributes, schemas) {
@@ -31,7 +31,7 @@ export default {
   },
 
   Type (type) {
-    return type.toObject();
+    return single(type);
   },
 
   List (values) {
