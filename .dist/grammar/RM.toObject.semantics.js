@@ -11,7 +11,7 @@ var defaultType = 'text',
 
 exports.default = {
   ListOf_some: function ListOf_some(element, separator, rest) {
-    return [element.toObject()].concat(rest.toObject());
+    return (0, _util.prepend)(element, rest);
   },
   CContained: function CContained(open, element, close) {
     return element.toObject();

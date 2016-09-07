@@ -5,6 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.join = join;
 exports.first = first;
+exports.prepend = prepend;
 function join(obj) {
   for (var key in obj) {
     var value = obj[key];
@@ -17,4 +18,8 @@ function join(obj) {
 
 function first(obj) {
   return obj.toObject()[0];
+}
+
+function prepend(first, rest) {
+  return [first.toObject()].concat(rest.toObject());
 }

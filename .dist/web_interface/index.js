@@ -946,7 +946,7 @@ var defaultType = 'text',
 
 exports.default = {
   ListOf_some: function ListOf_some(element, separator, rest) {
-    return [element.toObject()].concat(rest.toObject());
+    return (0, _util.prepend)(element, rest);
   },
   CContained: function CContained(open, element, close) {
     return element.toObject();
@@ -1040,6 +1040,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.join = join;
 exports.first = first;
+exports.prepend = prepend;
 function join(obj) {
   for (var key in obj) {
     var value = obj[key];
@@ -1052,6 +1053,10 @@ function join(obj) {
 
 function first(obj) {
   return obj.toObject()[0];
+}
+
+function prepend(first, rest) {
+  return [first.toObject()].concat(rest.toObject());
 }
 },{}],12:[function(require,module,exports){
 'use strict';
