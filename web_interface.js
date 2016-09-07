@@ -6,28 +6,40 @@ var delimiter = '^',
     quote = '~';
 // [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
 
-var currentEngine = 'postgresql';
-
 document.addEventListener('DOMContentLoaded', function () {
   var modelArea = document.getElementsByTagName('modelarea')[0],
       modelAreaTextArea = modelArea.getElementsByTagName('textarea')[0],
       errorArea = modelArea.getElementsByTagName('errorarea')[0],
       resultArea = document.getElementsByTagName('resultarea')[0],
       sqlArea = document.getElementsByTagName('sqlarea')[0],
+      sqlAreaSelect = sqlArea.getElementsByTagName('select')[0],
       sqlAreaTextArea = sqlArea.getElementsByTagName('textarea')[0],
       importArea = document.getElementsByTagName('importarea')[0],
+      importAreaSelect = importArea.getElementsByTagName('select')[0],
       importAreaTextArea = importArea.getElementsByTagName('textarea')[0];
+
+  var currentEngine = sqlAreaSelect.options[sqlAreaSelect.selectedIndex].value,
+      importMethod = importAreaSelect.options[importAreaSelect.selectedIndex].value;
 
   modelAreaTextArea.addEventListener('keyup', function (_ref) {
     var target = _ref.target;
     return a(target.value);
   });
 
+  sqlAreaSelect.addEventListener('change', function () {
+    currentEngine = sqlAreaSelect.options[sqlAreaSelect.selectedIndex].value;
+    a(modelAreaTextArea.value);
+  });
+  importArea.addEventListener('change', function () {
+    importMethod = importAreaSelect.options[importAreaSelect.selectedIndex].value;
+    a(modelAreaTextArea.value);
+  });
+
   a(modelAreaTextArea.value);
 
   function a(value) {
     try {
-      var _api = (0, _api2.api)(value, currentEngine, delimiter, quote);
+      var _api = (0, _api2.api)(value, currentEngine, delimiter, quote, importMethod);
 
       var schema = _api.schema;
       var imports = _api.imports;
