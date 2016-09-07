@@ -160,12 +160,15 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
       if (!primaryKey && !optional) parts.push('NOT NULL');
 
       if (check) {
-        const {operator, value} = check,
-              operand = value.check === 'Number' ? value.number : value.name;
+        const {operator, value} = check;
 
-        parts.push(`CHECK (${name} ${operator} ${operand})`);
+        if (value.check === 'Number') parts.push(`CHECK (${name} ${operator} ${value.number})`);
+        else if (value.check === 'Name') {
+          if (!_.some(attributes, attribute => attribute.name === value.name)) throw new SemanticError(`Cannot check against "${value.name}", it is not an attribute of "${table.name}"!`); // should also type-check here
+          parts.push(`CHECK (${name} ${operator} ${value.name})`);
+        }
+        else throw new Error('!', value);
       }
-
 
       return parts.join(' ');
 
