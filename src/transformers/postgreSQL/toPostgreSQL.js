@@ -245,8 +245,6 @@ class Table {
           {commonAttributes: schemaAttributes, model} = schema,
           {commonAttributes: modelAttributes, schemaMap} = model;
 
-    console.log({schema});
-
     return _.concat(
       _.filter(modelAttributes, a => a.primaryKey),
       _.filter(schemaAttributes, a => a.primaryKey),
