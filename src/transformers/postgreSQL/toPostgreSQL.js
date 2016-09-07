@@ -152,12 +152,20 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
     return commands;
 
-    function generateAttribute({name, primaryKey, optional, type}) {
+    function generateAttribute({name, primaryKey, optional, type, check}) {
       const parts = [name, type ? formatType(type) : 'text'];
 
       if (primaryKey && optional) throw new Error(`${schemaName}.${tableName}.${name} cannot be both a primary key and optional!`); // maybe outlaw this in the grammar?
 
       if (!primaryKey && !optional) parts.push('NOT NULL');
+
+      if (check) {
+        const {operator, value} = check,
+              operand = value.check === 'Number' ? value.number : value.name;
+
+        parts.push(`CHECK (${name} ${operator} ${operand})`);
+      }
+
 
       return parts.join(' ');
 

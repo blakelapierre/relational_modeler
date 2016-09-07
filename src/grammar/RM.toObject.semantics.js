@@ -24,10 +24,16 @@ export default {
     return join({name, attributes: first(attributes), dependencies});
   },
 
-  Attribute (primaryKey, name, optional, type) {
+  Attribute (primaryKey, name, optional, type, check) {
     primaryKey = first(primaryKey) === '!';
     type = first(type) || (primaryKey ? defaultPrimaryKeyType : defaultType);
-    return join({name, primaryKey, optional: first(optional) === '?', type});
+    return join({
+      name,
+      primaryKey,
+      optional: first(optional) === '?',
+      type,
+      check: first(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
+    });
   },
 
   Type (type) {
@@ -41,6 +47,14 @@ export default {
   Set (values) {
     return join({type: 'Set', values});
   },
+
+  Constraint: (operator, value) => join({operator, value}),
+
+  Operator: symbol => single(symbol),
+
+  CheckName: name => join({check: 'Name', name}),
+
+  CheckNumber: number => join({check: 'Number', number}),
 
   Dependency (preArity, glyph, postArity, primaryKey, reference, optional, name) {
     return join({

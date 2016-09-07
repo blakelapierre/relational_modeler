@@ -6,7 +6,7 @@ export default
   Table = name AttributeList? Dependency*
 
   AttributeList = Contained<ListOf<Attribute, ",">>
-  Attribute = PrimaryKey? name Optional? Type?
+  Attribute = PrimaryKey? name Optional? Type? Constraint?
 
   PrimaryKey = "!"
   Optional = "?"
@@ -18,6 +18,20 @@ export default
   Set = Contained<ListOf<Value, ",">>
   Value = digit+
         | CContained<"'", name, "'">
+
+  Constraint = Operator Check
+  Operator = ">"
+           | "<"
+           | ">="
+           | "<="
+           | "=="
+           | "<>"
+           | "!="
+  Check = CheckName
+        | CheckNumber
+
+  CheckName = name
+  CheckNumber = number
 
   Dependency = arity? dependency_glyph arity? PrimaryKey? Reference Optional? RoundContained<ReferenceName>?
 

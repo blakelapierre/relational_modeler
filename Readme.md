@@ -47,7 +47,7 @@ dist {!id, inserted_at timestamp} {
   features {
     feature {description, unlocked boolean} -> feature (parent_feature)
     account_feature -> accounts.account -> feature
-    feature_cost {cost numeric} -> feature
+    feature_cost {cost numeric > 0} -> feature
     feature_schedule {global_unlock_value numeric} -> feature
     feature_progress {contributed_value numeric} -> feature
   }
@@ -56,6 +56,29 @@ dist {!id, inserted_at timestamp} {
     transaction -> accounts.account
     transaction_detail {amount numeric} -> transaction
     transaction_account_feature -> features.account_feature -> transaction_detail
+  }
+}
+
+dist {!id, inserted_at timestamp} {
+  accounts {
+    account {key}
+    account_feature -> account -> features.feature
+  }
+
+  features {
+    feature {description} -> feature (parent_feature)
+    feature_cost {cost numeric} -> feature
+    feature_schedule {global_unlock_value numeric} -> feature
+    feature_progress {contributed_value numeric} -> feature
+
+    // NOTE: this syntax is not currently available
+    feature_unlocked : feature_progress.contributed_value >= feature_schedule.global_unlock_value
+  }
+
+  transactions {
+    transaction -> accounts.account
+    transaction_detail {amount numeric} -> transaction
+    transaction_account_feature -> accounts.account_feature -> transaction_detail
   }
 }
 ````
