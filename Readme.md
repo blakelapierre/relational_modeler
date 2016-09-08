@@ -5,18 +5,18 @@ Sample Models:
 database_name{
   schema_name {
     table_name {
-      !primaryKey,
+      @primaryKey,
       attribute
     } -> foreign_table
 
     foreign_table {
-      !primaryKey,
+      @primaryKey,
       attribute? boolean
     }
   }
 }
 
-experiments { !id, inserted_at timestamp } {
+experiments { @id, inserted_at timestamp } {
   binary {
     coin_flip {
       outcome { 'H', 'T' }
@@ -39,7 +39,7 @@ dist  {
   }
 }
 
-dist {!id, inserted_at timestamp} {
+dist {@id, inserted_at timestamp} {
   accounts {
     account {key}
   }
@@ -59,7 +59,7 @@ dist {!id, inserted_at timestamp} {
   }
 }
 
-dist {!id, inserted_at timestamp} {
+dist {@id, inserted_at timestamp} {
   accounts {
     account {key}
     account_feature -> account -> features.feature
@@ -67,9 +67,9 @@ dist {!id, inserted_at timestamp} {
 
   features {
     feature {description} -> feature (parent_feature)
-    feature_cost {cost numeric} -> feature
-    feature_schedule {global_unlock_value numeric} -> feature
-    feature_progress {contributed_value numeric} -> feature
+    feature_cost {cost numeric} -> !feature
+    feature_schedule {global_unlock_value numeric} -> !feature
+    feature_progress {contributed_value numeric} -> !feature
 
     // NOTE: this syntax is not currently available
     feature_unlocked : feature_progress.contributed_value >= feature_schedule.global_unlock_value
@@ -86,9 +86,10 @@ dist {!id, inserted_at timestamp} {
 For the full grammar, please see [its definition](/src/grammar/RM.ohm.js).
 
 ````
- ! - Indicates the attribute is part of the table's primary key
+ @ - Indicates the attribute is part of the table's PRIMARY KEY
+ ! - Indicates the attribute is part of a UNIQUE constraint
  ? - Indicates the attribute may be NULL
--> - Indicates a foreign key attribute to the foreign table
+-> - Indicates a foreign key REFERENCE attribute to the foreign table
 ````
 
 ###Installation
