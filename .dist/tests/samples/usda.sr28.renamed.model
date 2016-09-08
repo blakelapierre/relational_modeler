@@ -1,7 +1,7 @@
 usda {
  sr28 {
   Food_Description {
-    !NDB_No,
+    @NDB_No,
     Long_Desc,
     Short_Desc,
     ComName,
@@ -16,13 +16,13 @@ usda {
   } -> Food_Group_Description
 
   Food_Group_Description {
-    !FdGrp_Cd,
+    @FdGrp_Cd,
     FdGrp_Desc
   }
 
   LanguaL_Factor {
     NDB_No,
-    !Factor_Code
+    @Factor_Code
   }
 
   LanguaL_Factors_Description {
@@ -30,8 +30,8 @@ usda {
   } -> LanguaL_Factor
 
   Nutrient_Data {
-    !NDB_No,
-    !Nutr_No,
+    @NDB_No,
+    @Nutr_No,
     Nutr_Val numeric(10,3),
     Num_Data_Pts numeric(5),
     Std_Error numeric(8,3),
@@ -51,7 +51,7 @@ usda {
     Data_Derivation_Code
 
   Nutrient_Definition {
-    !Nutr_No,
+    @Nutr_No,
     Units,
     Tagname,
     NutrDesc,
@@ -60,18 +60,18 @@ usda {
   }
 
   Source_Code {
-    !Src_Cd varchar(2),
+    @Src_Cd varchar(2),
     SrcCd_Desc
   }
 
   Data_Derivation_Code {
-    !Deriv_Cd,
+    @Deriv_Cd,
     Deriv_Desc
   }
 
   Weight {
-    !NDB_No,
-    !Seq,
+    @NDB_No,
+    @Seq,
     Amount numeric(5,3),
     Msre_Desc,
     Gm_Wgt numeric(7,1),
@@ -88,13 +88,13 @@ usda {
   }
 
   Sources_of_Data_Link {
-    !NDB_No,
-    !Nutr_No
+    @NDB_No,
+    @Nutr_No
   } ->
     Sources_of_Data
 
   Sources_of_Data {
-    !DataSrc_ID text,
+    @DataSrc_ID text,
     Authors?,
     Title,
     Year?,

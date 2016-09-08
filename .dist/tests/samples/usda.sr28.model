@@ -1,7 +1,7 @@
 usda {
  sr28 {
   FOOD_DES {
-    !NDB_No text,
+    @NDB_No text,
     Long_Desc,
     Short_Desc,
     ComName?,
@@ -17,23 +17,23 @@ usda {
   } -> FD_GROUP
 
   FD_GROUP {
-    !FdGrp_Cd text,
+    @FdGrp_Cd text,
     FdGrp_Desc
   }
 
   LANGUAL {
-    !NDB_No text,
-    !Factor_Code text
+    @NDB_No text,
+    @Factor_Code text
   }
 
   LANGDESC {
-    !Factor_Code text,
+    @Factor_Code text,
     Description
   }
 
   NUT_DATA {
-    !NDB_No text,
-    !Nutr_No text,
+    @NDB_No text,
+    @Nutr_No text,
     Nutr_Val numeric(10,3),
     Num_Data_Pts? numeric(5),
     Std_Error? numeric(8,3),
@@ -52,7 +52,7 @@ usda {
     -> DERIV_CD?
 
   NUTR_DEF {
-    !Nutr_No text,
+    @Nutr_No text,
     Units,
     Tagname?,
     NutrDesc,
@@ -61,18 +61,18 @@ usda {
   }
 
   SRC_CD {
-    !Src_Cd text,
+    @Src_Cd text,
     SrcCd_Desc
   }
 
   DERIV_CD {
-    !Deriv_Cd text,
+    @Deriv_Cd text,
     Deriv_Desc
   }
 
   WEIGHT {
-    !NDB_No text,
-    !Seq text,
+    @NDB_No text,
+    @Seq text,
     Amount numeric,
     Msre_Desc,
     Gm_Wgt numeric(7,1),
@@ -89,12 +89,12 @@ usda {
   }
 
   DATSRCLN {
-    !NDB_No text,
-    !Nutr_No text
-  } -> !DATA_SRC
+    @NDB_No text,
+    @Nutr_No text
+  } -> @DATA_SRC
 
   DATA_SRC {
-    !DataSrc_ID text,
+    @DataSrc_ID text,
     Authors?,
     Title,
     Year?,

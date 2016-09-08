@@ -25,17 +25,26 @@ exports.default = {
   Table: function Table(name, attributes, dependencies) {
     return (0, _util.join)({ name: name, attributes: (0, _util.first)(attributes), dependencies: dependencies });
   },
-  Attribute: function Attribute(primaryKey, name, optional, type, check) {
-    primaryKey = (0, _util.first)(primaryKey) === '!';
-    type = (0, _util.first)(type) || (primaryKey ? defaultPrimaryKeyType : defaultType);
-    return (0, _util.join)({
+  Attribute: function Attribute(primaryKeyOrUnique, name, optional, type, check) {
+    primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
+    type = (0, _util.first)(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
+    return Object.assign((0, _util.join)({
       name: name,
-      primaryKey: primaryKey,
       optional: (0, _util.first)(optional) === '?',
       type: type,
       check: (0, _util.first)(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
-    });
+    }), primaryKeyOrUnique);
   },
+
+
+  PrimaryKey: function PrimaryKey(primaryKey) {
+    return (0, _util.join)({ primaryKey: (0, _util.first)(primaryKey) === '@' });
+  },
+
+  Unique: function Unique(unique) {
+    return (0, _util.join)({ unique: (0, _util.first)(unique) === '!' });
+  },
+
   Type: function Type(type) {
     return (0, _util.single)(type);
   },
@@ -63,15 +72,15 @@ exports.default = {
     return (0, _util.join)({ check: 'Number', number: number });
   },
 
-  Dependency: function Dependency(preArity, glyph, postArity, primaryKey, reference, optional, name) {
-    return (0, _util.join)({
+  Dependency: function Dependency(preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
+    primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
+    return Object.assign((0, _util.join)({
       preArity: (0, _util.first)(preArity) || '*',
       postArity: (0, _util.first)(postArity) || '*',
-      primaryKey: (0, _util.first)(primaryKey) === '!',
       reference: reference,
       optional: optional,
       name: (0, _util.first)(name)
-    });
+    }), primaryKeyOrUnique);
   },
   SchemaTableName: function SchemaTableName(schema, dot, table) {
     return (0, _util.join)({ schema: schema, table: table });

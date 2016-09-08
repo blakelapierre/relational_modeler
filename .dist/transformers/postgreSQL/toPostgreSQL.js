@@ -145,11 +145,15 @@ function toPostgreSQL(_ref) {
     var table = schema.tableMap[tableName];
     var attributes = _lodash2.default.flatMap([modelAttributes, schemaAttributes, table.attributes || []]);
     var primaryKeys = table.primaryKeys;
+    var unique = table.unique;
     var columns = _lodash2.default.map(attributes, generateAttribute).concat(_lodash2.default.map(table.dependencies, generateDependency)).join(', ');
 
     var constraints = [];
 
     if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (a) {
+      return a.name;
+    }) + ')');
+    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (a) {
       return a.name;
     }) + ')');
 
@@ -320,6 +324,38 @@ var Table = function () {
         var _ref10$reference = _ref10.reference;
         var schemaName = _ref10$reference.schema;
         var tableName = _ref10$reference.table;
+        return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+          {
+            name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
+          }
+        );
+      }));
+    }
+  }, {
+    key: 'unique',
+    get: function get() {
+      var schema = this.schema;
+      var tableAttributes = this.attributes;
+      var dependencies = this.dependencies;
+      var schemaAttributes = schema.commonAttributes;
+      var model = schema.model;
+      var modelAttributes = model.commonAttributes;
+      var schemaMap = model.schemaMap;
+
+
+      return _lodash2.default.concat(_lodash2.default.filter(modelAttributes, function (a) {
+        return a.unique;
+      }), _lodash2.default.filter(schemaAttributes, function (a) {
+        return a.unique;
+      }), _lodash2.default.filter(tableAttributes, function (a) {
+        return a.unique;
+      }), _lodash2.default.map(_lodash2.default.filter(dependencies, function (d) {
+        return d.unique;
+      }), function (_ref11) {
+        var name = _ref11.name;
+        var _ref11$reference = _ref11.reference;
+        var schemaName = _ref11$reference.schema;
+        var tableName = _ref11$reference.table;
         return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
           {
             name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)

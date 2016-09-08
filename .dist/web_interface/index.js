@@ -931,7 +931,7 @@ function generateModel(text, engineName) {
 Object.defineProperty(exports, "__esModule", {
       value: true
 });
-exports.default = "RM {\n  Model = name AttributeList? Contained<Schema*>\n  Schema = name AttributeList? Contained<Table*>\n\n  Table = name AttributeList? Dependency*\n\n  AttributeList = Contained<ListOf<Attribute, \",\">>\n  Attribute = PrimaryKey? name Optional? Type? Constraint?\n\n  PrimaryKey = \"!\"\n  Optional = \"?\"\n\n  Type = List\n       | Set\n\n  List = SquareContained<ListOf<Value, \",\">>\n  Set = Contained<ListOf<Value, \",\">>\n  Value = digit+\n        | CContained<\"'\", name, \"'\">\n\n  Constraint = Operator Check\n  Operator = \">\"\n           | \"<\"\n           | \">=\"\n           | \"<=\"\n           | \"==\"\n           | \"<>\"\n           | \"!=\"\n  Check = CheckName\n        | CheckNumber\n\n  CheckName = name\n  CheckNumber = number\n\n  Dependency = arity? dependency_glyph arity? PrimaryKey? Reference Optional? RoundContained<ReferenceName>?\n\n  Reference = SchemaTableName\n            | TableName\n\n  ReferenceName = name\n\n  SchemaTableName = name \".\" name\n  TableName = name\n\n  Contained<element> = CContained<\"{\", element, \"}\">\n  SquareContained<element> = CContained<\"[\", element, \"]\">\n  RoundContained<element> = CContained<\"(\", element, \")\">\n\n  CContained<open, element, close> = open element close\n\n  name = first_character additional_character*\n  first_character = letter | \"_\"\n  additional_character = first_character | alnum\n\n  arity = \"*\" | \"+\" | number\n  dependency_glyph = \"->\"\n\n  number = digit+\n}\n\nRM_PGSQL <: RM {\n  Type := List\n        | Set\n        | SQLType\n\n  SQLType = \"bigint\"\n          | \"smallint\"\n          | \"integer\"\n          | \"real\"\n          | \"double precision\"\n          | \"smallserial\"\n          | \"serial\"\n          | \"bigserial\"\n          | \"money\"\n          | \"blob\"\n          | \"bytea\"\n          | \"boolean\"\n          | \"text\"\n          | \"timestamp\"\n          | \"date\"\n          | \"time\"\n          | \"interval\"\n          | \"point\"\n          | \"line\"\n          | \"lseq\"\n          | \"box\"\n          | \"path\"\n          | \"polygon\"\n          | \"circle\"\n          | \"cidr\"\n          | \"inet\"\n          | \"macaddr\"\n          | \"json\"\n          | \"jsonb\"\n          | \"int4range\"\n          | \"int8range\"\n          | \"numrange\"\n          | \"tsrange\"\n          | \"tstzrange\"\n          | \"daterange\"\n          | Numeric\n          | VarChar\n\n  Numeric = numeric RoundContained<NumericParameters>?\n  NumericParameters = Precision OptionalScale?\n  Precision = number\n  OptionalScale = \",\" number\n\n  numeric = \"numeric\" | \"decimal\"\n\n  VarChar = \"varchar\" RoundContained<number>?\n}";
+exports.default = "RM {\n  Model = name AttributeList? Contained<Schema*>\n  Schema = name AttributeList? Contained<Table*>\n\n  Table = name AttributeList? Dependency*\n\n  AttributeList = Contained<ListOf<Attribute, \",\">>\n  Attribute = PrimaryKeyOrUnique? name Optional? Type? Constraint?\n\n  PrimaryKeyOrUnique = PrimaryKey\n                     | Unique\n  PrimaryKey = \"@\"\n  Unique = \"!\"\n  Optional = \"?\"\n\n  Type = List\n       | Set\n\n  List = SquareContained<ListOf<Value, \",\">>\n  Set = Contained<ListOf<Value, \",\">>\n  Value = digit+\n        | CContained<\"'\", name, \"'\">\n\n  Constraint = Operator Check\n  Operator = \">\"\n           | \"<\"\n           | \">=\"\n           | \"<=\"\n           | \"==\"\n           | \"<>\"\n           | \"!=\"\n  Check = CheckName\n        | CheckNumber\n\n  CheckName = name\n  CheckNumber = number\n\n  Dependency = arity? dependency_glyph arity? PrimaryKeyOrUnique? Reference Optional? RoundContained<ReferenceName>?\n\n  Reference = SchemaTableName\n            | TableName\n\n  ReferenceName = name\n\n  SchemaTableName = name \".\" name\n  TableName = name\n\n  Contained<element> = CContained<\"{\", element, \"}\">\n  SquareContained<element> = CContained<\"[\", element, \"]\">\n  RoundContained<element> = CContained<\"(\", element, \")\">\n\n  CContained<open, element, close> = open element close\n\n  name = first_character additional_character*\n  first_character = letter | \"_\"\n  additional_character = first_character | alnum\n\n  arity = \"*\" | \"+\" | number\n  dependency_glyph = \"->\"\n\n  number = digit+\n}\n\nRM_PGSQL <: RM {\n  Type := List\n        | Set\n        | SQLType\n\n  SQLType = \"bigint\"\n          | \"smallint\"\n          | \"integer\"\n          | \"real\"\n          | \"double precision\"\n          | \"smallserial\"\n          | \"serial\"\n          | \"bigserial\"\n          | \"money\"\n          | \"blob\"\n          | \"bytea\"\n          | \"boolean\"\n          | \"text\"\n          | \"timestamp\"\n          | \"date\"\n          | \"time\"\n          | \"interval\"\n          | \"point\"\n          | \"line\"\n          | \"lseq\"\n          | \"box\"\n          | \"path\"\n          | \"polygon\"\n          | \"circle\"\n          | \"cidr\"\n          | \"inet\"\n          | \"macaddr\"\n          | \"json\"\n          | \"jsonb\"\n          | \"int4range\"\n          | \"int8range\"\n          | \"numrange\"\n          | \"tsrange\"\n          | \"tstzrange\"\n          | \"daterange\"\n          | Numeric\n          | VarChar\n\n  Numeric = numeric RoundContained<NumericParameters>?\n  NumericParameters = Precision OptionalScale?\n  Precision = number\n  OptionalScale = \",\" number\n\n  numeric = \"numeric\" | \"decimal\"\n\n  VarChar = \"varchar\" RoundContained<number>?\n}";
 },{}],9:[function(require,module,exports){
 'use strict';
 
@@ -960,17 +960,26 @@ exports.default = {
   Table: function Table(name, attributes, dependencies) {
     return (0, _util.join)({ name: name, attributes: (0, _util.first)(attributes), dependencies: dependencies });
   },
-  Attribute: function Attribute(primaryKey, name, optional, type, check) {
-    primaryKey = (0, _util.first)(primaryKey) === '!';
-    type = (0, _util.first)(type) || (primaryKey ? defaultPrimaryKeyType : defaultType);
-    return (0, _util.join)({
+  Attribute: function Attribute(primaryKeyOrUnique, name, optional, type, check) {
+    primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
+    type = (0, _util.first)(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
+    return Object.assign((0, _util.join)({
       name: name,
-      primaryKey: primaryKey,
       optional: (0, _util.first)(optional) === '?',
       type: type,
       check: (0, _util.first)(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
-    });
+    }), primaryKeyOrUnique);
   },
+
+
+  PrimaryKey: function PrimaryKey(primaryKey) {
+    return (0, _util.join)({ primaryKey: (0, _util.first)(primaryKey) === '@' });
+  },
+
+  Unique: function Unique(unique) {
+    return (0, _util.join)({ unique: (0, _util.first)(unique) === '!' });
+  },
+
   Type: function Type(type) {
     return (0, _util.single)(type);
   },
@@ -998,15 +1007,15 @@ exports.default = {
     return (0, _util.join)({ check: 'Number', number: number });
   },
 
-  Dependency: function Dependency(preArity, glyph, postArity, primaryKey, reference, optional, name) {
-    return (0, _util.join)({
+  Dependency: function Dependency(preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
+    primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
+    return Object.assign((0, _util.join)({
       preArity: (0, _util.first)(preArity) || '*',
       postArity: (0, _util.first)(postArity) || '*',
-      primaryKey: (0, _util.first)(primaryKey) === '!',
       reference: reference,
       optional: optional,
       name: (0, _util.first)(name)
-    });
+    }), primaryKeyOrUnique);
   },
   SchemaTableName: function SchemaTableName(schema, dot, table) {
     return (0, _util.join)({ schema: schema, table: table });
@@ -1315,11 +1324,15 @@ function toPostgreSQL(_ref) {
     var table = schema.tableMap[tableName];
     var attributes = _lodash2.default.flatMap([modelAttributes, schemaAttributes, table.attributes || []]);
     var primaryKeys = table.primaryKeys;
+    var unique = table.unique;
     var columns = _lodash2.default.map(attributes, generateAttribute).concat(_lodash2.default.map(table.dependencies, generateDependency)).join(', ');
 
     var constraints = [];
 
     if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (a) {
+      return a.name;
+    }) + ')');
+    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (a) {
       return a.name;
     }) + ')');
 
@@ -1497,6 +1510,38 @@ var Table = function () {
         );
       }));
     }
+  }, {
+    key: 'unique',
+    get: function get() {
+      var schema = this.schema;
+      var tableAttributes = this.attributes;
+      var dependencies = this.dependencies;
+      var schemaAttributes = schema.commonAttributes;
+      var model = schema.model;
+      var modelAttributes = model.commonAttributes;
+      var schemaMap = model.schemaMap;
+
+
+      return _lodash2.default.concat(_lodash2.default.filter(modelAttributes, function (a) {
+        return a.unique;
+      }), _lodash2.default.filter(schemaAttributes, function (a) {
+        return a.unique;
+      }), _lodash2.default.filter(tableAttributes, function (a) {
+        return a.unique;
+      }), _lodash2.default.map(_lodash2.default.filter(dependencies, function (d) {
+        return d.unique;
+      }), function (_ref11) {
+        var name = _ref11.name;
+        var _ref11$reference = _ref11.reference;
+        var schemaName = _ref11$reference.schema;
+        var tableName = _ref11$reference.table;
+        return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+          {
+            name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
+          }
+        );
+      }));
+    }
   }]);
 
   return Table;
@@ -1511,9 +1556,9 @@ var delimiter = '^',
 // [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
 
 var samples = {
-  'example': 'database_name {\n  schema_name {\n    table_name {\n      !primaryKey,\n      attribute\n    } -> foreign_table\n\n    foreign_table {\n      !primaryKey,\n      attribute? boolean\n    }\n  }\n}',
-  'experiments': 'experiments { !id, inserted_at timestamp } {\n  binary {\n    coin_flip {\n      outcome { \'H\', \'T\' }\n    }\n  }\n}',
-  'accounting': 'dist {!id, inserted_at timestamp} {\n  accounts {\n    account {key}\n    account_feature -> account -> features.feature\n  }\n\n  features {\n    feature {description} -> feature (parent_feature)\n    feature_cost {cost numeric} -> feature\n    feature_schedule {global_unlock_value numeric} -> feature\n    feature_progress {contributed_value numeric} -> feature\n  }\n\n  transactions {\n    transaction -> accounts.account\n    transaction_detail {amount numeric} -> transaction\n    transaction_account_feature -> accounts.account_feature -> transaction_detail\n  }\n}'
+  'example': 'database_name {\n  schema_name {\n    table_name {\n      @primaryKey,\n      attribute\n    } -> foreign_table\n\n    foreign_table {\n      @primaryKey,\n      attribute? boolean\n    }\n  }\n}',
+  'experiments': 'experiments { @id, inserted_at timestamp } {\n  binary {\n    coin_flip {\n      outcome { \'H\', \'T\' }\n    }\n  }\n}',
+  'accounting': 'dist {@id, inserted_at timestamp} {\n  accounts {\n    account {key}\n    account_feature -> account -> features.feature\n  }\n\n  features {\n    feature {description} -> feature (parent_feature)\n    feature_cost {cost numeric} -> feature\n    feature_schedule {global_unlock_value numeric} -> feature\n    feature_progress {contributed_value numeric} -> feature\n  }\n\n  transactions {\n    transaction -> accounts.account\n    transaction_detail {amount numeric} -> transaction\n    transaction_account_feature -> accounts.account_feature -> transaction_detail\n  }\n}'
 };
 
 document.addEventListener('DOMContentLoaded', function () {
