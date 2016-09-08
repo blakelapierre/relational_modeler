@@ -10,21 +10,12 @@
   <body>
     <workspace>
       <modelarea>
-        <textarea>
-database_name {
-  schema_name {
-    table_name {
-      !primaryKey,
-      attribute
-    } -> foreign_table
-
-    foreign_table {
-      !primaryKey,
-      attribute? boolean
-    }
-  }
-}
-        </textarea>
+        <select>
+          <option value="example">Example</option>
+          <option value="experiments">Experiments</option>
+          <option value="accounting">Accounting</option>
+        </select>
+        <textarea></textarea>
         <errorarea></errorarea>
       </modelarea>
       <resultarea>
