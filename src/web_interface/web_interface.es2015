@@ -10,18 +10,18 @@ const samples = {
 `database_name {
   schema_name {
     table_name {
-      !primaryKey,
+      @primaryKey,
       attribute
     } -> foreign_table
 
     foreign_table {
-      !primaryKey,
+      @primaryKey,
       attribute? boolean
     }
   }
 }`,
   'experiments':
-`experiments { !id, inserted_at timestamp } {
+`experiments { @id, inserted_at timestamp } {
   binary {
     coin_flip {
       outcome { 'H', 'T' }
@@ -29,7 +29,7 @@ const samples = {
   }
 }`,
   'accounting':
-`dist {!id, inserted_at timestamp} {
+`dist {@id, inserted_at timestamp} {
   accounts {
     account {key}
     account_feature -> account -> features.feature
