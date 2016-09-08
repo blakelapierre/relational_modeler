@@ -70,7 +70,7 @@ exports.default = {
       primaryKey: (0, _util.first)(primaryKey) === '!',
       reference: reference,
       optional: optional,
-      name: (name || '').length > 0 ? name : undefined
+      name: (0, _util.first)(name)
     });
   },
   SchemaTableName: function SchemaTableName(schema, dot, table) {
