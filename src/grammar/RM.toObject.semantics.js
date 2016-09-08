@@ -63,7 +63,7 @@ export default {
       primaryKey: first(primaryKey) === '!',
       reference,
       optional,
-      name: (name || '').length > 0 ? name : undefined
+      name: first(name)
     });
   },
 
