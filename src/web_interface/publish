@@ -2,7 +2,7 @@
 
 git branch -D gh-pages
 
-git subtree split --prefix=.dist/web_interface -b gh-pages && \
+git subtree split --squash --prefix=.dist/web_interface -b gh-pages && \
 
 git push origin :gh-pages && \
 
