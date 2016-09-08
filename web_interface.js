@@ -6,8 +6,15 @@ var delimiter = '^',
     quote = '~';
 // [model, result, sql, import] = ["model", "result", "sql", "import"].map(n => document.getElementBy)
 
+var samples = {
+  'example': 'database_name {\n  schema_name {\n    table_name {\n      !primaryKey,\n      attribute\n    } -> foreign_table\n\n    foreign_table {\n      !primaryKey,\n      attribute? boolean\n    }\n  }\n}',
+  'experiments': 'experiments { !id, inserted_at timestamp } {\n  binary {\n    coin_flip {\n      outcome { \'H\', \'T\' }\n    }\n  }\n}',
+  'accounting': 'dist {!id, inserted_at timestamp} {\n  accounts {\n    account {key}\n    account_feature -> account -> features.feature\n  }\n\n  features {\n    feature {description} -> feature (parent_feature)\n    feature_cost {cost numeric} -> feature\n    feature_schedule {global_unlock_value numeric} -> feature\n    feature_progress {contributed_value numeric} -> feature\n  }\n\n  transactions {\n    transaction -> accounts.account\n    transaction_detail {amount numeric} -> transaction\n    transaction_account_feature -> accounts.account_feature -> transaction_detail\n  }\n}'
+};
+
 document.addEventListener('DOMContentLoaded', function () {
   var modelArea = document.getElementsByTagName('modelarea')[0],
+      modelAreaSelect = modelArea.getElementsByTagName('select')[0],
       modelAreaTextArea = modelArea.getElementsByTagName('textarea')[0],
       errorArea = modelArea.getElementsByTagName('errorarea')[0],
       resultArea = document.getElementsByTagName('resultarea')[0],
@@ -24,6 +31,14 @@ document.addEventListener('DOMContentLoaded', function () {
   modelAreaTextArea.addEventListener('keyup', function (_ref) {
     var target = _ref.target;
     return a(target.value);
+  });
+
+  modelAreaSelect.selectedIndex = 0;
+  modelAreaTextArea.value = samples[modelAreaSelect.options[modelAreaSelect.selectedIndex].value];
+
+  modelAreaSelect.addEventListener('change', function () {
+    modelAreaTextArea.value = samples[modelAreaSelect.options[modelAreaSelect.selectedIndex].value];
+    a(modelAreaTextArea.value);
   });
 
   sqlAreaSelect.addEventListener('change', function () {
