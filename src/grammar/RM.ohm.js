@@ -6,9 +6,12 @@ export default
   Table = name AttributeList? Dependency*
 
   AttributeList = Contained<ListOf<Attribute, ",">>
-  Attribute = PrimaryKey? name Optional? Type? Constraint?
+  Attribute = PrimaryKeyOrUnique? name Optional? Type? Constraint?
 
-  PrimaryKey = "!"
+  PrimaryKeyOrUnique = PrimaryKey
+                     | Unique
+  PrimaryKey = "@"
+  Unique = "!"
   Optional = "?"
 
   Type = List
@@ -33,7 +36,7 @@ export default
   CheckName = name
   CheckNumber = number
 
-  Dependency = arity? dependency_glyph arity? PrimaryKey? Reference Optional? RoundContained<ReferenceName>?
+  Dependency = arity? dependency_glyph arity? PrimaryKeyOrUnique? Reference Optional? RoundContained<ReferenceName>?
 
   Reference = SchemaTableName
             | TableName

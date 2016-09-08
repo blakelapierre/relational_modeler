@@ -24,17 +24,22 @@ export default {
     return join({name, attributes: first(attributes), dependencies});
   },
 
-  Attribute (primaryKey, name, optional, type, check) {
-    primaryKey = first(primaryKey) === '!';
-    type = first(type) || (primaryKey ? defaultPrimaryKeyType : defaultType);
-    return join({
+  Attribute (primaryKeyOrUnique, name, optional, type, check) {
+    primaryKeyOrUnique = first(primaryKeyOrUnique) || {};
+    type = first(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
+    return Object.assign(join({
       name,
-      primaryKey,
       optional: first(optional) === '?',
       type,
       check: first(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
-    });
+    }), primaryKeyOrUnique);
   },
+
+  PrimaryKey:
+    primaryKey => join({primaryKey: first(primaryKey) === '@'}),
+
+  Unique:
+    unique => join({unique: first(unique) === '!'}),
 
   Type (type) {
     return single(type);
@@ -50,21 +55,24 @@ export default {
 
   Constraint: (operator, value) => join({operator, value}),
 
-  Operator: symbol => single(symbol),
+  Operator:
+    symbol => single(symbol),
 
-  CheckName: name => join({check: 'Name', name}),
+  CheckName:
+    name => join({check: 'Name', name}),
 
-  CheckNumber: number => join({check: 'Number', number}),
+  CheckNumber:
+    number => join({check: 'Number', number}),
 
-  Dependency (preArity, glyph, postArity, primaryKey, reference, optional, name) {
-    return join({
+  Dependency (preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
+    primaryKeyOrUnique = first(primaryKeyOrUnique) || {};
+    return Object.assign(join({
       preArity: first(preArity) || '*',
       postArity: first(postArity) || '*',
-      primaryKey: first(primaryKey) === '!',
       reference,
       optional,
       name: first(name)
-    });
+    }), primaryKeyOrUnique);
   },
 
   SchemaTableName (schema, dot, table) {

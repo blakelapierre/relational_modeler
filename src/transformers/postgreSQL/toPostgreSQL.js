@@ -140,6 +140,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
           table = schema.tableMap[tableName],
           attributes = _.flatMap([modelAttributes, schemaAttributes, table.attributes || []]),
           primaryKeys = table.primaryKeys,
+          unique = table.unique,
           columns = _.map(attributes, generateAttribute)
                      .concat(_.map(table.dependencies, generateDependency))
                      .join(', ');
@@ -147,6 +148,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     const constraints = [];
 
     if (primaryKeys.length > 0) constraints.push(`PRIMARY KEY (${primaryKeys.map(a => a.name)})`);
+    if (unique.length > 0) constraints.push(`UNIQUE (${unique.map(a => a.name)})`);
 
     commands.push(createTable(`${schemaName}.${tableName}`, columns, constraints));
 
@@ -262,6 +264,25 @@ class Table {
       _.filter(tableAttributes, a => a.primaryKey),
       _.map(
         _.filter(dependencies, d => d.primaryKey),
+          ({name, reference: {schema: schemaName, table: tableName}}) => //console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+          ({
+            name: name ||
+                  ((schemaName === undefined ? '' : `${schemaName || schema.name}_`) +
+                  `${tableName}_${((schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0]) || {name: 'id'}).name}`)
+          })));
+  }
+
+  get unique() {
+    const {schema, attributes: tableAttributes, dependencies} = this,
+          {commonAttributes: schemaAttributes, model} = schema,
+          {commonAttributes: modelAttributes, schemaMap} = model;
+
+    return _.concat(
+      _.filter(modelAttributes, a => a.unique),
+      _.filter(schemaAttributes, a => a.unique),
+      _.filter(tableAttributes, a => a.unique),
+      _.map(
+        _.filter(dependencies, d => d.unique),
           ({name, reference: {schema: schemaName, table: tableName}}) => //console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
           ({
             name: name ||
