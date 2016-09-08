@@ -89,7 +89,7 @@ For the full grammar, please see [its definition](/src/grammar/RM.ohm.js).
  @ - Indicates the attribute is part of the table's PRIMARY KEY
  ! - Indicates the attribute is part of a UNIQUE constraint
  ? - Indicates the attribute may be NULL
--> - Indicates a foreign key REFERENCE attribute to the foreign table
+-> - Indicates a foreign key attribute REFERENCES the primary key of another table
 ````
 
 ###Installation
