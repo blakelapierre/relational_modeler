@@ -150,7 +150,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     if (primaryKeys.length > 0) constraints.push(`PRIMARY KEY (${primaryKeys.map(a => a.name)})`);
     if (unique.length > 0) constraints.push(`UNIQUE (${unique.map(a => a.name)})`);
 
-    commands.push(createTable(`${schemaName}.${tableName}`, columns, constraints));
+    commands.push(createTable(`"${schemaName}"."${tableName}"`, columns, constraints));
 
     return commands;
 
@@ -182,8 +182,8 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
         if (type.type === 'Set') {
           // These names are guaranteed to be unique, but maybe we want a way to de-duplicate equivalent types?
-          const newTypeName = `${tableName}_${name}_enum`;
-          commands.push(createType(`${schemaName}.${newTypeName}`, type.values));
+          const newTypeName = `"${schemaName}"."${tableName}_${name}_enum"`;
+          commands.push(createType(`${newTypeName}`, type.values));
 
           return `${newTypeName} DEFAULT '${type.values[0]}'`;
         }
