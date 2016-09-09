@@ -16,7 +16,7 @@ var createTable = exports.createTable = function createTable(name, columns, cons
 };
 
 var createType = exports.createType = function createType(name, values) {
-  return 'CREATE TYPE ' + name + ' (' + values.map(function (value) {
+  return 'CREATE TYPE ' + name + ' AS ENUM (' + values.map(function (value) {
     return '\'' + value + '\'';
-  }).join(', ') + ')';
+  }).join(', ') + ');';
 };

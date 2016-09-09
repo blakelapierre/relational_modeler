@@ -1172,9 +1172,9 @@ var createTable = exports.createTable = function createTable(name, columns, cons
 };
 
 var createType = exports.createType = function createType(name, values) {
-  return 'CREATE TYPE ' + name + ' (' + values.map(function (value) {
+  return 'CREATE TYPE ' + name + ' AS ENUM (' + values.map(function (value) {
     return '\'' + value + '\'';
-  }).join(', ') + ')';
+  }).join(', ') + ');';
 };
 },{}],14:[function(require,module,exports){
 'use strict';
@@ -1336,7 +1336,7 @@ function toPostgreSQL(_ref) {
       return a.name;
     }) + ')');
 
-    commands.push((0, _sql.createTable)(schemaName + '.' + tableName, columns, constraints));
+    commands.push((0, _sql.createTable)('"' + schemaName + '"."' + tableName + '"', columns, constraints));
 
     return commands;
 
@@ -1378,8 +1378,8 @@ function toPostgreSQL(_ref) {
 
         if (type.type === 'Set') {
           // These names are guaranteed to be unique, but maybe we want a way to de-duplicate equivalent types?
-          var newTypeName = tableName + '_' + name + '_enum';
-          commands.push((0, _sql.createType)(schemaName + '.' + newTypeName, type.values));
+          var newTypeName = '"' + schemaName + '"."' + tableName + '_' + name + '_enum"';
+          commands.push((0, _sql.createType)('' + newTypeName, type.values));
 
           return newTypeName + ' DEFAULT \'' + type.values[0] + '\'';
         } else if (type.type === 'Numeric') {
