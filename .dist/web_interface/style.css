@@ -47,7 +47,7 @@ workspace modelarea hintarea span {
 }
 workspace modelarea hintarea reference {
   max-height: 6rem;
-  overflow: hidden;
+  overflow: auto;
   transition: max-height 0.5s ease-in-out;
 }
 workspace modelarea errorarea {
