@@ -3,6 +3,8 @@
   <head>
     <title>Relational Modeler Web Interface</title>
 
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+
     <link href="style.css" rel="stylesheet">
 
     <script src="index.js"></script>
@@ -16,6 +18,15 @@
           <option value="accounting">Accounting</option>
         </select>
         <textarea></textarea>
+        <hintarea onclick="this.classList.toggle('minimized')">
+          <span>Quick Reference</span>
+          <reference>
+ @ - Indicates the attribute is part of the table's PRIMARY KEY
+ ! - Indicates the attribute is part of a UNIQUE constraint
+ ? - Indicates the attribute may be NULL
+-> - Indicates a foreign key attribute REFERENCES the primary key of another table
+          </reference>
+        </hintarea>
         <errorarea></errorarea>
       </modelarea>
       <resultarea>

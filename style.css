@@ -1,10 +1,13 @@
 workspace {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   display: flex;
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow: hidden;
 }
 workspace * {
   border: solid 1px #333;
@@ -20,18 +23,44 @@ workspace modelarea {
 workspace modelarea textarea {
   flex: 1 1 auto;
 }
+workspace modelarea hintarea {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  cursor: pointer;
+}
+workspace modelarea hintarea * {
+  border: none;
+}
+workspace modelarea hintarea.minimized reference {
+  max-height: 0;
+}
+workspace modelarea hintarea:hover span {
+  background-color: #000;
+  color: #fff;
+}
+workspace modelarea hintarea span {
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+workspace modelarea hintarea reference {
+  max-height: 6rem;
+  overflow: hidden;
+  transition: max-height 0.5s ease-in-out;
+}
 workspace modelarea errorarea {
   display: none;
   flex: 0 1 auto;
   white-space: pre;
-  font-family: monospace;
   background-color: #911;
 }
 workspace modelarea errorarea.has-error {
   display: block;
 }
 workspace resultarea {
-  flex: 1 1 auto;
+  flex: 2 1 auto;
   display: flex;
   flex-direction: column;
 }
@@ -50,4 +79,12 @@ workspace resultarea importarea {
 }
 workspace resultarea importarea textarea {
   flex: 1 1 auto;
+}
+@media all and (orientation: portrait) {
+  workspace {
+    flex-direction: column;
+  }
+  workspace resultarea {
+    flex-direction: row;
+  }
 }
