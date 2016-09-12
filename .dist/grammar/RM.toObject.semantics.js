@@ -48,6 +48,10 @@ exports.default = {
     return (0, _util.join)({ unique: (0, _util.first)(unique) === '!' });
   },
 
+  Optional: function Optional(optional) {
+    return (0, _util.first)(optional) === '?';
+  },
+
   Type: function Type(type) {
     return (0, _util.single)(type);
   },
@@ -81,7 +85,7 @@ exports.default = {
       preArity: (0, _util.first)(preArity) || '*',
       postArity: (0, _util.first)(postArity) || '*',
       reference: reference,
-      optional: optional,
+      optional: (0, _util.first)(optional) === true,
       name: (0, _util.first)(name)
     }), primaryKeyOrUnique);
   },

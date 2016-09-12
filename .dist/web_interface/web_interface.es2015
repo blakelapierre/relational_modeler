@@ -63,9 +63,9 @@ const samples = {
   }
 
   operations {
-    task {name, description}
+    task {name, description} -> task? (parent_task)
 
-    task_assignment {active boolean} -> !task -> !personnel.employee
+    task_assignment {ended? timestamp} -> !task -> !personnel.employee
     task_update {update text} -> task_assignment
   }
 }`,

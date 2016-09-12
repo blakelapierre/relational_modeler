@@ -975,6 +975,10 @@ exports.default = {
     return (0, _util.join)({ unique: (0, _util.first)(unique) === '!' });
   },
 
+  Optional: function Optional(optional) {
+    return (0, _util.first)(optional) === '?';
+  },
+
   Type: function Type(type) {
     return (0, _util.single)(type);
   },
@@ -1008,7 +1012,7 @@ exports.default = {
       preArity: (0, _util.first)(preArity) || '*',
       postArity: (0, _util.first)(postArity) || '*',
       reference: reference,
-      optional: optional,
+      optional: (0, _util.first)(optional) === true,
       name: (0, _util.first)(name)
     }), primaryKeyOrUnique);
   },
@@ -1568,7 +1572,7 @@ var samples = {
   'example': 'database_name {\n  schema_name {\n    table_name {\n      @primaryKey,\n      attribute\n    } -> foreign_table\n\n    foreign_table {\n      @primaryKey,\n      attribute? boolean\n    }\n  }\n}',
   'experiments': 'experiments { @id, inserted_at timestamp } {\n  binary {\n    coin_flip {\n      outcome { \'H\', \'T\' }\n    }\n  }\n}',
   'accounting': 'dist {@id, inserted_at timestamp} {\n  accounts {\n    account {key}\n    account_feature -> account -> features.feature\n  }\n\n  features {\n    feature {description} -> feature (parent_feature)\n    feature_cost {cost numeric} -> feature\n    feature_schedule {global_unlock_value numeric} -> feature\n    feature_progress {contributed_value numeric} -> feature\n  }\n\n  transactions {\n    transaction -> accounts.account\n    transaction_detail {amount numeric} -> transaction\n    transaction_account_feature -> accounts.account_feature -> transaction_detail\n  }\n}',
-  'company': 'company {@id, inserted_at timestamp} {\n  personnel {\n    employee {name}\n\n    employee_engagement {start timestamp, end? timestamp > start, salary money} -> employee\n  }\n\n  payroll {\n    payment {amount money}\n\n    employee_payment {occurred timestamp} -> personnel.employee_engagement -> payment\n  }\n\n  operations {\n    task {name, description}\n\n    task_assignment {active boolean} -> !task -> !personnel.employee\n    task_update {update text} -> task_assignment\n  }\n}',
+  'company': 'company {@id, inserted_at timestamp} {\n  personnel {\n    employee {name}\n\n    employee_engagement {start timestamp, end? timestamp > start, salary money} -> employee\n  }\n\n  payroll {\n    payment {amount money}\n\n    employee_payment {occurred timestamp} -> personnel.employee_engagement -> payment\n  }\n\n  operations {\n    task {name, description} -> task? (parent_task)\n\n    task_assignment {ended? timestamp} -> !task -> !personnel.employee\n    task_update {update text} -> task_assignment\n  }\n}',
   'usda_sr28': 'usda {\n sr28 {\n  FOOD_DES {\n    @NDB_No text,\n    Long_Desc,\n    Short_Desc,\n    ComName?,\n    ManufacName?,\n    Survey?,\n    Ref_desc?,\n    Refuse?,\n    SciName?,\n    N_Factor?,\n    Pro_Factor?,\n    Fat_Factor?,\n    CHO_Factor?\n  } -> FD_GROUP\n\n  FD_GROUP {\n    @FdGrp_Cd text,\n    FdGrp_Desc\n  }\n\n  LANGUAL {\n    @NDB_No text,\n    @Factor_Code text\n  }\n\n  LANGDESC {\n    @Factor_Code text,\n    Description\n  }\n\n  NUT_DATA {\n    @NDB_No text,\n    @Nutr_No text,\n    Nutr_Val numeric(10,3),\n    Num_Data_Pts? numeric(5),\n    Std_Error? numeric(8,3),\n    Ref_NDB_No?,\n    Add_Nutr_Mark?,\n    Num_Studies? numeric,\n    Min? numeric(10,3),\n    Max? numeric(10,3),\n    DF? numeric(4),\n    Low_EB? numeric(10,3),\n    Up_EB? numeric(10,3),\n    Stat_cmt?,\n    AddMod_Date?,\n    CC?\n  } -> SRC_CD\n    -> DERIV_CD?\n\n  NUTR_DEF {\n    @Nutr_No text,\n    Units,\n    Tagname?,\n    NutrDesc,\n    Num_Dec,\n    SR_Order numeric(6)\n  }\n\n  SRC_CD {\n    @Src_Cd text,\n    SrcCd_Desc\n  }\n\n  DERIV_CD {\n    @Deriv_Cd text,\n    Deriv_Desc\n  }\n\n  WEIGHT {\n    @NDB_No text,\n    @Seq text,\n    Amount numeric,\n    Msre_Desc,\n    Gm_Wgt numeric(7,1),\n    Num_Data_Pts? numeric(4),\n    Std_Dev? numeric(7,3)\n  }\n\n  FOOTNOTE {\n    NDB_No,\n    Footnt_No,\n    Footnt_Typ,\n    Nutr_No?,\n    Footnt_Txt\n  }\n\n  DATSRCLN {\n    @NDB_No text,\n    @Nutr_No text\n  } -> @DATA_SRC\n\n  DATA_SRC {\n    @DataSrc_ID text,\n    Authors?,\n    Title,\n    Year?,\n    Journal?,\n    Vol_City?,\n    Issue_State?,\n    Start_Page?,\n    End_Page?\n  }\n }\n}'
 };
 
