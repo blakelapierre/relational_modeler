@@ -68,15 +68,7 @@ function getReadyEngine(name) {
 
   if (!engine) throw new Error('No engine with name \'' + name + '\'!');
 
-  if (!engine.grammar) {
-    var _loadGrammarWithSeman = loadGrammarWithSemantics(engine);
-
-    var grammar = _loadGrammarWithSeman.grammar;
-    var semantics = _loadGrammarWithSeman.semantics;
-
-    engine.grammar = grammar;
-    engine.semantics = semantics;
-  }
+  if (!engine.grammar) Object.assign(engine, loadGrammarWithSemantics(engine));
 
   return engine;
 }

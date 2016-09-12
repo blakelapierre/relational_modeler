@@ -889,15 +889,7 @@ function getReadyEngine(name) {
 
   if (!engine) throw new Error('No engine with name \'' + name + '\'!');
 
-  if (!engine.grammar) {
-    var _loadGrammarWithSeman = loadGrammarWithSemantics(engine);
-
-    var grammar = _loadGrammarWithSeman.grammar;
-    var semantics = _loadGrammarWithSeman.semantics;
-
-    engine.grammar = grammar;
-    engine.semantics = semantics;
-  }
+  if (!engine.grammar) Object.assign(engine, loadGrammarWithSemantics(engine));
 
   return engine;
 }
@@ -947,6 +939,9 @@ var defaultType = 'text',
 exports.default = {
   ListOf_some: function ListOf_some(element, separator, rest) {
     return (0, _util.prepend)(element, rest);
+  },
+  ListOf_none: function ListOf_none() {
+    return undefined;
   },
   CContained: function CContained(open, element, close) {
     return (0, _util.single)(element);
@@ -1205,8 +1200,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 //Should be moved out somewhere else
 var importMethods = {
-  'psql': '#!/bin/bash\n\nPOSTGRES_HOST=localhost\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\nrun() {\n     echo "running $1"\n\n     psql -h "$POSTGRES_HOST"           -p "$POSTGRES_PORT"           -d "$POSGRES_DATABASE"           -v ON_ERROR_STOP=1           -U "$POSTGRES_USER"           -x           -c "$1" < $2\n}',
-  'docker': '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\nrun() {\n     echo "running $1"\n\n     docker run --rm -it \\\n                --link postgres-usda \\\n               -v $(pwd)/data:/data:z \\\n               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"${1}\\" < \\"/data/${2}\\""\n}\n'
+  'psql': function psql(delimiter, quote) {
+    return '#!/bin/bash\n\nPOSTGRES_HOST=localhost\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\ncopy() {\n     COMMAND="SET client_encoding = \'${ENCODING}\'; BEGIN; COPY ${1} FROM STDIN WITH CSV DELIMITER \'' + delimiter + '\' QUOTE \'' + quote + '\' ENCODING \'${ENCODING}\' NULL \'\'; COMMIT;"\n\n     echo "running $COMMAND"\n\n     psql -h "$POSTGRES_HOST" \\\n          -p "$POSTGRES_PORT" \\\n          -d "$POSGRES_DATABASE" \\\n          -v ON_ERROR_STOP=1 \\\n          -U "$POSTGRES_USER" \\\n          -x \\\n          -c "$COMMAND" \\\n          < $2\n}';
+  },
+  'docker': function docker(delimiter, quote) {
+    return '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\ncopy() {\n     COMMAND="SET client_encoding = \'${ENCODING}\'; BEGIN; COPY ${1} FROM STDIN WITH CSV DELIMITER \'' + delimiter + '\' QUOTE \'' + quote + '\' ENCODING \'${ENCODING}\' NULL \'\'; COMMIT;"\n\n     echo "running $COMMAND"\n\n     docker run --rm -it \\\n                --link postgres-usda \\\n               -v $(pwd)/data:/data:z \\\n               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"$COMMAND\\"  < \\"/data/${2}\\""\n}\n';
+  }
 };
 
 function toPostgreSQL(_ref) {
@@ -1261,7 +1260,7 @@ function toPostgreSQL(_ref) {
   function getTable(schemaMap, schemaName, tableName) {
     var table = getSchema(schemaMap, schemaName).tableMap[tableName];
 
-    if (!table) throw new _SemanticError2.default('No Table "' + schemaName + '.' + tableName + '"!');
+    if (!table) throw new _SemanticError2.default('No Table "' + schemaName + '"."' + tableName + '"!');
 
     return table;
   }
@@ -1282,17 +1281,25 @@ function toPostgreSQL(_ref) {
   function createImports(orderedTables, importMethod) {
     var extension = arguments.length <= 2 || arguments[2] === undefined ? '.txt' : arguments[2];
 
-    return [importMethods[importMethod]].concat(orderedTables.map(function (qualifiedTableName) {
-      return run(copy(qualifiedTableName), fileName(qualifiedTableName));
+    return [importMethods[importMethod](delimiter, quote)].concat(orderedTables.map(function (qualifiedTableName) {
+      return copy(tableName(qualifiedTableName), fileName(qualifiedTableName));
     }));
 
-    function run(command, file) {
-      return 'run "' + command + '" "' + file + '"';
+    function copy(table, file) {
+      return 'copy \'' + table + '\' "' + file + '"';
     }
 
-    function copy(qualifiedTableName) {
+    function tableName(qualifiedTableName) {
       // should support something like: (${columnList}) so that imports can more easily be customized to the column order of the data file
-      return 'SET client_encoding = \'${ENCODING}\'; BEGIN; COPY ' + qualifiedTableName + ' FROM STDIN WITH CSV DELIMITER \'' + delimiter + '\' QUOTE \'' + quote + '\' ENCODING \'${ENCODING}\' NULL \'\'; COMMIT;';
+
+      var _qualifiedTableName$s = qualifiedTableName.split('.');
+
+      var _qualifiedTableName$s2 = _slicedToArray(_qualifiedTableName$s, 2);
+
+      var schema = _qualifiedTableName$s2[0];
+      var table = _qualifiedTableName$s2[1];
+
+      return '\\"' + schema + '\\".\\"' + table + '\\"';
     }
 
     function fileName(name) {
@@ -1309,12 +1316,12 @@ function toPostgreSQL(_ref) {
   }
 
   function processTable(qualifiedTableName) {
-    var _qualifiedTableName$s = qualifiedTableName.split('.');
+    var _qualifiedTableName$s3 = qualifiedTableName.split('.');
 
-    var _qualifiedTableName$s2 = _slicedToArray(_qualifiedTableName$s, 2);
+    var _qualifiedTableName$s4 = _slicedToArray(_qualifiedTableName$s3, 2);
 
-    var schemaName = _qualifiedTableName$s2[0];
-    var tableName = _qualifiedTableName$s2[1];
+    var schemaName = _qualifiedTableName$s4[0];
+    var tableName = _qualifiedTableName$s4[1];
 
 
     var commands = [];
@@ -1329,27 +1336,29 @@ function toPostgreSQL(_ref) {
 
     var constraints = [];
 
-    if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (a) {
-      return a.name;
+    if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (_ref5) {
+      var name = _ref5.name;
+      return '"' + name + '"';
     }) + ')');
-    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (a) {
-      return a.name;
+    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (_ref6) {
+      var name = _ref6.name;
+      return '"' + name + '"';
     }) + ')');
 
     commands.push((0, _sql.createTable)('"' + schemaName + '"."' + tableName + '"', columns, constraints));
 
     return commands;
 
-    function generateAttribute(_ref5) {
-      var name = _ref5.name;
-      var primaryKey = _ref5.primaryKey;
-      var optional = _ref5.optional;
-      var type = _ref5.type;
-      var check = _ref5.check;
+    function generateAttribute(_ref7) {
+      var name = _ref7.name;
+      var primaryKey = _ref7.primaryKey;
+      var optional = _ref7.optional;
+      var type = _ref7.type;
+      var check = _ref7.check;
 
-      var parts = [name, type ? formatType(type) : 'text'];
+      var parts = ['"' + name + '"', type ? formatType(type) : 'text'];
 
-      if (primaryKey && optional) throw new Error(schemaName + '.' + tableName + '.' + name + ' cannot be both a primary key and optional!'); // maybe outlaw this in the grammar?
+      if (primaryKey && optional) throw new Error('"' + schemaName + '"."' + tableName + '"."' + name + '" cannot be both a primary key and optional!'); // maybe outlaw this in the grammar?
 
       if (!primaryKey && !optional) parts.push('NOT NULL');
 
@@ -1363,7 +1372,7 @@ function toPostgreSQL(_ref) {
             if (!_lodash2.default.some(attributes, function (attribute) {
               return attribute.name === value.name;
             })) throw new _SemanticError2.default('Cannot check against "' + value.name + '", it is not an attribute of "' + table.name + '"!'); // should also type-check here
-            parts.push('CHECK (' + name + ' ' + operator + ' ' + value.name + ')');
+            parts.push('CHECK ("' + name + '" ' + operator + ' "' + value.name + '")');
           } else throw new Error('!', value);
         })();
       }
@@ -1398,18 +1407,18 @@ function toPostgreSQL(_ref) {
       }
     }
 
-    function generateDependency(_ref6) {
-      var name = _ref6.name;
-      var preArity = _ref6.preArity;
-      var postArity = _ref6.postArity;
-      var _ref6$reference = _ref6.reference;
-      var schema = _ref6$reference.schema;
-      var table = _ref6$reference.table;
-      var attribute = _ref6$reference.attribute;
-      var optional = _ref6.optional;
+    function generateDependency(_ref8) {
+      var name = _ref8.name;
+      var preArity = _ref8.preArity;
+      var postArity = _ref8.postArity;
+      var _ref8$reference = _ref8.reference;
+      var schema = _ref8$reference.schema;
+      var table = _ref8$reference.table;
+      var attribute = _ref8$reference.attribute;
+      var optional = _ref8.optional;
 
       var id = name || (schema === undefined ? '' : (schema || schemaName) + '_') + (table + '_' + (attribute || { name: 'id' }).name),
-          references = (schema || schemaName) + '.' + table;
+          references = '"' + (schema || schemaName) + '"."' + table + '"';
 
       var type = (attribute || { type: 'bigint' }).type;
 
@@ -1418,19 +1427,19 @@ function toPostgreSQL(_ref) {
 
       if (preArity === 1 && postArity === 1) type += ' UNIQUE';
 
-      return id + ' ' + type + ' REFERENCES ' + references;
+      return '"' + id + '" ' + type + ' REFERENCES ' + references;
     }
   }
 }
 
 // get primaryKeys() { return _.filter(attributes, a => a.primaryKey); }
 
-var Model = function Model(_ref7) {
+var Model = function Model(_ref9) {
   var _this = this;
 
-  var commonAttributes = _ref7.commonAttributes;
-  var name = _ref7.name;
-  var schemas = _ref7.schemas;
+  var commonAttributes = _ref9.commonAttributes;
+  var name = _ref9.name;
+  var schemas = _ref9.schemas;
 
   _classCallCheck(this, Model);
 
@@ -1441,12 +1450,12 @@ var Model = function Model(_ref7) {
   });
 };
 
-var Schema = function Schema(model, _ref8) {
+var Schema = function Schema(model, _ref10) {
   var _this2 = this;
 
-  var name = _ref8.name;
-  var commonAttributes = _ref8.commonAttributes;
-  var tables = _ref8.tables;
+  var name = _ref10.name;
+  var commonAttributes = _ref10.commonAttributes;
+  var tables = _ref10.tables;
 
   _classCallCheck(this, Schema);
 
@@ -1459,10 +1468,10 @@ var Schema = function Schema(model, _ref8) {
 };
 
 var Table = function () {
-  function Table(schema, _ref9) {
-    var name = _ref9.name;
-    var attributes = _ref9.attributes;
-    var dependencies = _ref9.dependencies;
+  function Table(schema, _ref11) {
+    var name = _ref11.name;
+    var attributes = _ref11.attributes;
+    var dependencies = _ref11.dependencies;
 
     _classCallCheck(this, Table);
 
@@ -1498,11 +1507,11 @@ var Table = function () {
         return a.primaryKey;
       }), _lodash2.default.map(_lodash2.default.filter(dependencies, function (d) {
         return d.primaryKey;
-      }), function (_ref10) {
-        var name = _ref10.name;
-        var _ref10$reference = _ref10.reference;
-        var schemaName = _ref10$reference.schema;
-        var tableName = _ref10$reference.table;
+      }), function (_ref12) {
+        var name = _ref12.name;
+        var _ref12$reference = _ref12.reference;
+        var schemaName = _ref12$reference.schema;
+        var tableName = _ref12$reference.table;
         return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
           {
             name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
@@ -1530,11 +1539,11 @@ var Table = function () {
         return a.unique;
       }), _lodash2.default.map(_lodash2.default.filter(dependencies, function (d) {
         return d.unique;
-      }), function (_ref11) {
-        var name = _ref11.name;
-        var _ref11$reference = _ref11.reference;
-        var schemaName = _ref11$reference.schema;
-        var tableName = _ref11$reference.table;
+      }), function (_ref13) {
+        var name = _ref13.name;
+        var _ref13$reference = _ref13.reference;
+        var schemaName = _ref13$reference.schema;
+        var tableName = _ref13$reference.table;
         return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
           {
             name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
@@ -1558,7 +1567,9 @@ var delimiter = '^',
 var samples = {
   'example': 'database_name {\n  schema_name {\n    table_name {\n      @primaryKey,\n      attribute\n    } -> foreign_table\n\n    foreign_table {\n      @primaryKey,\n      attribute? boolean\n    }\n  }\n}',
   'experiments': 'experiments { @id, inserted_at timestamp } {\n  binary {\n    coin_flip {\n      outcome { \'H\', \'T\' }\n    }\n  }\n}',
-  'accounting': 'dist {@id, inserted_at timestamp} {\n  accounts {\n    account {key}\n    account_feature -> account -> features.feature\n  }\n\n  features {\n    feature {description} -> feature (parent_feature)\n    feature_cost {cost numeric} -> feature\n    feature_schedule {global_unlock_value numeric} -> feature\n    feature_progress {contributed_value numeric} -> feature\n  }\n\n  transactions {\n    transaction -> accounts.account\n    transaction_detail {amount numeric} -> transaction\n    transaction_account_feature -> accounts.account_feature -> transaction_detail\n  }\n}'
+  'accounting': 'dist {@id, inserted_at timestamp} {\n  accounts {\n    account {key}\n    account_feature -> account -> features.feature\n  }\n\n  features {\n    feature {description} -> feature (parent_feature)\n    feature_cost {cost numeric} -> feature\n    feature_schedule {global_unlock_value numeric} -> feature\n    feature_progress {contributed_value numeric} -> feature\n  }\n\n  transactions {\n    transaction -> accounts.account\n    transaction_detail {amount numeric} -> transaction\n    transaction_account_feature -> accounts.account_feature -> transaction_detail\n  }\n}',
+  'company': 'company {@id, inserted_at timestamp} {\n  personnel {\n    employee {name}\n\n    employee_engagement {start timestamp, end? timestamp > start, salary money} -> employee\n  }\n\n  payroll {\n    payment {amount money}\n\n    employee_payment {occurred timestamp} -> personnel.employee_engagement -> payment\n  }\n\n  operations {\n    task {name, description}\n\n    task_assignment {active boolean} -> !task -> !personnel.employee\n    task_update {update text} -> task_assignment\n  }\n}',
+  'usda_sr28': 'usda {\n sr28 {\n  FOOD_DES {\n    @NDB_No text,\n    Long_Desc,\n    Short_Desc,\n    ComName?,\n    ManufacName?,\n    Survey?,\n    Ref_desc?,\n    Refuse?,\n    SciName?,\n    N_Factor?,\n    Pro_Factor?,\n    Fat_Factor?,\n    CHO_Factor?\n  } -> FD_GROUP\n\n  FD_GROUP {\n    @FdGrp_Cd text,\n    FdGrp_Desc\n  }\n\n  LANGUAL {\n    @NDB_No text,\n    @Factor_Code text\n  }\n\n  LANGDESC {\n    @Factor_Code text,\n    Description\n  }\n\n  NUT_DATA {\n    @NDB_No text,\n    @Nutr_No text,\n    Nutr_Val numeric(10,3),\n    Num_Data_Pts? numeric(5),\n    Std_Error? numeric(8,3),\n    Ref_NDB_No?,\n    Add_Nutr_Mark?,\n    Num_Studies? numeric,\n    Min? numeric(10,3),\n    Max? numeric(10,3),\n    DF? numeric(4),\n    Low_EB? numeric(10,3),\n    Up_EB? numeric(10,3),\n    Stat_cmt?,\n    AddMod_Date?,\n    CC?\n  } -> SRC_CD\n    -> DERIV_CD?\n\n  NUTR_DEF {\n    @Nutr_No text,\n    Units,\n    Tagname?,\n    NutrDesc,\n    Num_Dec,\n    SR_Order numeric(6)\n  }\n\n  SRC_CD {\n    @Src_Cd text,\n    SrcCd_Desc\n  }\n\n  DERIV_CD {\n    @Deriv_Cd text,\n    Deriv_Desc\n  }\n\n  WEIGHT {\n    @NDB_No text,\n    @Seq text,\n    Amount numeric,\n    Msre_Desc,\n    Gm_Wgt numeric(7,1),\n    Num_Data_Pts? numeric(4),\n    Std_Dev? numeric(7,3)\n  }\n\n  FOOTNOTE {\n    NDB_No,\n    Footnt_No,\n    Footnt_Typ,\n    Nutr_No?,\n    Footnt_Txt\n  }\n\n  DATSRCLN {\n    @NDB_No text,\n    @Nutr_No text\n  } -> @DATA_SRC\n\n  DATA_SRC {\n    @DataSrc_ID text,\n    Authors?,\n    Title,\n    Year?,\n    Journal?,\n    Vol_City?,\n    Issue_State?,\n    Start_Page?,\n    End_Page?\n  }\n }\n}'
 };
 
 document.addEventListener('DOMContentLoaded', function () {

@@ -13,6 +13,9 @@ exports.default = {
   ListOf_some: function ListOf_some(element, separator, rest) {
     return (0, _util.prepend)(element, rest);
   },
+  ListOf_none: function ListOf_none() {
+    return undefined;
+  },
   CContained: function CContained(open, element, close) {
     return (0, _util.single)(element);
   },
