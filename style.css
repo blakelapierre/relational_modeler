@@ -1,9 +1,33 @@
-workspace {
+body {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+bar {
+  flex: 0 1 auto;
+  display: flex;
+  align-content: center;
+  background-color: #000;
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1em;
+  text-align: right;
+}
+bar a {
+  text-decoration: none;
+  color: #fff;
+}
+bar a:visited {
+  color: #fff;
+}
+workspace {
+  flex: 1 1 auto;
   display: flex;
   font-family: monospace;
   white-space: pre-wrap;
