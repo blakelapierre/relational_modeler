@@ -34,11 +34,7 @@ function getReadyEngine(name) {
 
   if (!engine) throw new Error(`No engine with name '${name}'!`);
 
-  if (!engine.grammar) {
-    const {grammar, semantics} = loadGrammarWithSemantics(engine);
-    engine.grammar = grammar;
-    engine.semantics = semantics;
-  }
+  if (!engine.grammar) Object.assign(engine, loadGrammarWithSemantics(engine));
 
   return engine;
 }

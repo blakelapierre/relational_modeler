@@ -8,6 +8,10 @@ export default {
     return prepend(element, rest);
   },
 
+  ListOf_none () {
+    return undefined;
+  },
+
   CContained (open, element, close) {
     return single(element);
   },

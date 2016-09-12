@@ -1,3 +1,4 @@
+
 import _ from 'lodash';
 
 import SemanticError from '../../SemanticError';
@@ -6,7 +7,7 @@ import {createDatabase, createSchema, createTable, createType} from './sql';
 
 //Should be moved out somewhere else
 const importMethods = {
-  'psql':
+  'psql': (delimiter, quote) =>
 `#!/bin/bash
 
 POSTGRES_HOST=localhost
@@ -22,18 +23,21 @@ ENCODING=SQL_ASCII
 #      done
 # fi
 
-run() {
-     echo "running $1"
+copy() {
+     COMMAND="SET client_encoding = '$\{ENCODING\}'; BEGIN; COPY $\{1\} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}' ENCODING '$\{ENCODING\}' NULL ''; COMMIT;"
 
-     psql -h "$POSTGRES_HOST" \
-          -p "$POSTGRES_PORT" \
-          -d "$POSGRES_DATABASE" \
-          -v ON_ERROR_STOP=1 \
-          -U "$POSTGRES_USER" \
-          -x \
-          -c "$1" < $2
+     echo "running $COMMAND"
+
+     psql -h "$POSTGRES_HOST" \\
+          -p "$POSTGRES_PORT" \\
+          -d "$POSGRES_DATABASE" \\
+          -v ON_ERROR_STOP=1 \\
+          -U "$POSTGRES_USER" \\
+          -x \\
+          -c "$COMMAND" \\
+          < $2
 }`,
-  'docker':
+  'docker': (delimiter, quote) =>
 `#!/bin/bash
 
 POSTGRES_HOST=postgres-usda
@@ -49,13 +53,15 @@ ENCODING=SQL_ASCII
 #      done
 # fi
 
-run() {
-     echo "running $1"
+copy() {
+     COMMAND="SET client_encoding = '$\{ENCODING\}'; BEGIN; COPY $\{1\} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}' ENCODING '$\{ENCODING\}' NULL ''; COMMIT;"
+
+     echo "running $COMMAND"
 
      docker run --rm -it \\
                 --link postgres-usda \\
                -v $(pwd)/data:/data:z \\
-               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"$\{1\}\\" < \\"/data/$\{2\}\\""
+               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"$COMMAND\\"  < \\"/data/$\{2\}\\""
 }
 `
 };
@@ -91,7 +97,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
   function getTable(schemaMap, schemaName, tableName) {
     const table = getSchema(schemaMap, schemaName).tableMap[tableName];
 
-    if (!table) throw new SemanticError(`No Table "${schemaName}.${tableName}"!`);
+    if (!table) throw new SemanticError(`No Table "${schemaName}"."${tableName}"!`);
 
     return table;
   }
@@ -112,15 +118,16 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
   }
 
   function createImports(orderedTables, importMethod, extension = '.txt') {
-    return [importMethods[importMethod]].concat(orderedTables.map(qualifiedTableName => run(copy(qualifiedTableName), fileName(qualifiedTableName))));
+    return [importMethods[importMethod](delimiter, quote)].concat(orderedTables.map(qualifiedTableName => copy(tableName(qualifiedTableName), fileName(qualifiedTableName))));
 
-    function run(command, file) {
-      return `run "${command}" "${file}"`;
+    function copy(table, file) {
+      return `copy '${table}' "${file}"`;
     }
 
-    function copy(qualifiedTableName) {
+    function tableName(qualifiedTableName) {
       // should support something like: (${columnList}) so that imports can more easily be customized to the column order of the data file
-      return `SET client_encoding = '$\{ENCODING\}'; BEGIN; COPY ${qualifiedTableName} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}' ENCODING '$\{ENCODING\}' NULL ''; COMMIT;`;
+      const [schema, table] = qualifiedTableName.split('.');
+      return `\\"${schema}\\".\\"${table}\\"`;
     }
 
     function fileName(name) {
@@ -147,17 +154,17 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
     const constraints = [];
 
-    if (primaryKeys.length > 0) constraints.push(`PRIMARY KEY (${primaryKeys.map(a => a.name)})`);
-    if (unique.length > 0) constraints.push(`UNIQUE (${unique.map(a => a.name)})`);
+    if (primaryKeys.length > 0) constraints.push(`PRIMARY KEY (${primaryKeys.map(({name}) => `"${name}"`)})`);
+    if (unique.length > 0) constraints.push(`UNIQUE (${unique.map(({name}) => `"${name}"`)})`);
 
     commands.push(createTable(`"${schemaName}"."${tableName}"`, columns, constraints));
 
     return commands;
 
     function generateAttribute({name, primaryKey, optional, type, check}) {
-      const parts = [name, type ? formatType(type) : 'text'];
+      const parts = [`"${name}"`, type ? formatType(type) : 'text'];
 
-      if (primaryKey && optional) throw new Error(`${schemaName}.${tableName}.${name} cannot be both a primary key and optional!`); // maybe outlaw this in the grammar?
+      if (primaryKey && optional) throw new Error(`"${schemaName}"."${tableName}"."${name}" cannot be both a primary key and optional!`); // maybe outlaw this in the grammar?
 
       if (!primaryKey && !optional) parts.push('NOT NULL');
 
@@ -167,7 +174,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
         if (value.check === 'Number') parts.push(`CHECK (${name} ${operator} ${value.number})`);
         else if (value.check === 'Name') {
           if (!_.some(attributes, attribute => attribute.name === value.name)) throw new SemanticError(`Cannot check against "${value.name}", it is not an attribute of "${table.name}"!`); // should also type-check here
-          parts.push(`CHECK (${name} ${operator} ${value.name})`);
+          parts.push(`CHECK ("${name}" ${operator} "${value.name}")`);
         }
         else throw new Error('!', value);
       }
@@ -209,7 +216,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     function generateDependency({name, preArity, postArity, reference: {schema, table, attribute}, optional}) {
       const id = name ||
                  ((schema === undefined ? '' : `${schema || schemaName}_`) + `${table}_${(attribute || {name: 'id'}).name}`),
-            references = `${schema || schemaName}.${table}`;
+            references = `"${schema || schemaName}"."${table}"`;
 
       let type = (attribute || {type: 'bigint'}).type;
 
@@ -218,7 +225,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
       if (preArity === 1 && postArity === 1) type += ' UNIQUE';
 
-      return `${id} ${type} REFERENCES ${references}`;
+      return `"${id}" ${type} REFERENCES ${references}`;
     }
   }
 }
