@@ -45,6 +45,9 @@ export default {
   Unique:
     unique => join({unique: first(unique) === '!'}),
 
+  Optional:
+    optional => first(optional) === '?',
+
   Type (type) {
     return single(type);
   },
@@ -74,7 +77,7 @@ export default {
       preArity: first(preArity) || '*',
       postArity: first(postArity) || '*',
       reference,
-      optional,
+      optional: first(optional) === true,
       name: first(name)
     }), primaryKeyOrUnique);
   },
