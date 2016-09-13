@@ -15,6 +15,9 @@ POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_DATABASE=usda
 ENCODING=SQL_ASCII
+DELIMITER='${delimiter}'
+QUOTE='${quote}'
+NULL=
 
 # if nc -h; then
 #      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
@@ -24,16 +27,16 @@ ENCODING=SQL_ASCII
 # fi
 
 copy() {
-     COMMAND="SET client_encoding = '$\{ENCODING\}'; BEGIN; COPY $\{1\} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}' ENCODING '$\{ENCODING\}' NULL ''; COMMIT;"
+     COMMAND="SET client_encoding = '$\{ENCODING\}'; BEGIN; COPY $\{1\} ($\{3\}) FROM STDIN WITH CSV DELIMITER '$\{DELIMITER\}' QUOTE '$\{QUOTE\}' ENCODING '$\{ENCODING\}' NULL '$\{NULL\}'; COMMIT;"
 
      echo "running $COMMAND"
 
      psql -h "$POSTGRES_HOST" \\
           -p "$POSTGRES_PORT" \\
           -d "$POSGRES_DATABASE" \\
-          -v ON_ERROR_STOP=1 \\
           -U "$POSTGRES_USER" \\
           -x \\
+          -v ON_ERROR_STOP=1 \\
           -c "$COMMAND" \\
           < $2
 }`,
@@ -45,6 +48,9 @@ POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_DATABASE=usda
 ENCODING=SQL_ASCII
+DELIMITER='${delimiter}'
+QUOTE='${quote}'
+NULL=
 
 # if nc -h; then
 #      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
@@ -54,14 +60,15 @@ ENCODING=SQL_ASCII
 # fi
 
 copy() {
-     COMMAND="SET client_encoding = '$\{ENCODING\}'; BEGIN; COPY $\{1\} FROM STDIN WITH CSV DELIMITER '${delimiter}' QUOTE '${quote}' ENCODING '$\{ENCODING\}' NULL ''; COMMIT;"
+     SQL_COMMAND="SET client_encoding = '$\{ENCODING\}'; BEGIN; COPY $\{1\} ($\{3\}) FROM STDIN WITH CSV DELIMITER '$\{DELIMITER\}' QUOTE '$\{QUOTE\}' ENCODING '$\{ENCODING\}' NULL '$\{NULL\}'; COMMIT;"
+     COMMAND="psql -h \"$POSTGRES_HOST\" -p \"$POSTGRES_PORT\" -U \"$POSTGRES_USER\" -d \"$POSTGRES_DATABASE\" -x -v ON_ERROR_STOP=1 -c \\"$SQL_COMMAND\\"  < \\"/data/$\{2\}\\""
 
      echo "running $COMMAND"
 
      docker run --rm -it \\
-                --link postgres-usda \\
+                --link "$POSTGRES_HOST" \\
                -v $(pwd)/data:/data:z \\
-               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"$COMMAND\\"  < \\"/data/$\{2\}\\""
+               postgres /bin/bash -c "$COMMAND"
 }
 `
 };
@@ -78,7 +85,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
   return {
     schema: [createDatabase(model.name)].concat(createSchemas(schemas, schemaMap, orderedTables)),
-    imports: createImports(orderedTables, importMethod)
+    imports: createImports(orderedTables, importMethod, schemaMap)
   };
 
   function addTableMap(schema) {
@@ -117,11 +124,21 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     );
   }
 
-  function createImports(orderedTables, importMethod, extension = '.txt') {
-    return [importMethods[importMethod](delimiter, quote)].concat(orderedTables.map(qualifiedTableName => copy(tableName(qualifiedTableName), fileName(qualifiedTableName))));
+  function createImports(orderedTables, importMethod, schemaMap, extension = '.txt') {
+    return [importMethods[importMethod](delimiter, quote)].concat(orderedTables.map(qualifiedTableName => copy(tableName(qualifiedTableName), fileName(qualifiedTableName), columns(qualifiedTableName, schemaMap))));
 
-    function copy(table, file) {
-      return `copy '${table}' "${file}"`;
+    function copy(table, file, columns) {
+      return `copy '${table}' "${file}" '${columns}'`;
+    }
+
+    function columns(qualifiedTableName, schemaMap) {
+      const [schemaName, tableName] = qualifiedTableName.split('.'),
+            schema = schemaMap[schemaName] || {tableMap:[]},
+            table = schema.tableMap[tableName];
+
+      if (!table) throw new SemanticError(`No "${schemaName}"."${tableName}"!`);
+
+      return table.columns.map(({name}) => `\\"${name}\\"`).join(", ");
     }
 
     function tableName(qualifiedTableName) {
@@ -131,7 +148,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
     }
 
     function fileName(name) {
-      let [schemaName, tableName] = name.split('.');
+      const [schemaName, tableName] = name.split('.');
 
       return `${schemaName}/${tableName}${extension}`;
     }
@@ -154,7 +171,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
     const constraints = [];
 
-    if (primaryKeys.length > 0) constraints.push(`PRIMARY KEY (${primaryKeys.map(({name}) => `"${name}"`)})`);
+    if (primaryKeys.length > 0) constraints.push(`PRIMARY KEY (${primaryKeys.map(({name}) => `"${name}"`).join(', ')})`);
     if (unique.length > 0) constraints.push(`UNIQUE (${unique.map(({name}) => `"${name}"`)})`);
 
     commands.push(createTable(`"${schemaName}"."${tableName}"`, columns, constraints));
@@ -171,7 +188,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
       if (check) {
         const {operator, value} = check;
 
-        if (value.check === 'Number') parts.push(`CHECK (${name} ${operator} ${value.number})`);
+        if (value.check === 'Number') parts.push(`CHECK ("${name}" ${operator} "${value.number}")`);
         else if (value.check === 'Name') {
           if (!_.some(attributes, attribute => attribute.name === value.name)) throw new SemanticError(`Cannot check against "${value.name}", it is not an attribute of "${table.name}"!`); // should also type-check here
           parts.push(`CHECK ("${name}" ${operator} "${value.name}")`);
@@ -258,6 +275,24 @@ class Table {
   }
 
   get model() { return schema.model; }
+
+  get columns() {
+    const {schema, attributes: tableAttributes, dependencies} = this,
+          {commonAttributes: schemaAttributes, model} = schema,
+          {commonAttributes: modelAttributes, schemaMap} = model;
+
+    return _.concat(
+      modelAttributes,
+      schemaAttributes,
+      tableAttributes,
+      _.map(dependencies,
+        ({name, reference: {schema: schemaName, table: tableName}}) => //console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+          ({
+            name: name ||
+                  ((schemaName === undefined ? '' : `${schemaName || schema.name}_`) +
+                  `${tableName}_${((schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0]) || {name: 'id'}).name}`)
+          })));
+  }
 
   get primaryKeys() {
     // console.log({this});
