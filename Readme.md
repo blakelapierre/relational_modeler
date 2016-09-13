@@ -22,6 +22,11 @@ experiments { @id, inserted_at timestamp } {
       outcome { 'H', 'T' }
     }
   }
+
+  cats_on_pants {
+    cat { name }
+    cat_position { position { 'pants1', 'pants2', 'both', 'neither' } } -> cat
+  }
 }
 
 dist  {
