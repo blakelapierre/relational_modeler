@@ -960,7 +960,7 @@ exports.default = {
     type = (0, _util.first)(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
     return Object.assign((0, _util.join)({
       name: name,
-      optional: (0, _util.first)(optional) === '?',
+      optional: !!(0, _util.first)(optional),
       type: type,
       check: (0, _util.first)(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
     }), primaryKeyOrUnique);
@@ -1012,7 +1012,7 @@ exports.default = {
       preArity: (0, _util.first)(preArity) || '*',
       postArity: (0, _util.first)(postArity) || '*',
       reference: reference,
-      optional: (0, _util.first)(optional) === true,
+      optional: !!(0, _util.first)(optional),
       name: (0, _util.first)(name)
     }), primaryKeyOrUnique);
   },
@@ -1205,10 +1205,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 //Should be moved out somewhere else
 var importMethods = {
   'psql': function psql(delimiter, quote) {
-    return '#!/bin/bash\n\nPOSTGRES_HOST=localhost\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\ncopy() {\n     COMMAND="SET client_encoding = \'${ENCODING}\'; BEGIN; COPY ${1} FROM STDIN WITH CSV DELIMITER \'' + delimiter + '\' QUOTE \'' + quote + '\' ENCODING \'${ENCODING}\' NULL \'\'; COMMIT;"\n\n     echo "running $COMMAND"\n\n     psql -h "$POSTGRES_HOST" \\\n          -p "$POSTGRES_PORT" \\\n          -d "$POSGRES_DATABASE" \\\n          -v ON_ERROR_STOP=1 \\\n          -U "$POSTGRES_USER" \\\n          -x \\\n          -c "$COMMAND" \\\n          < $2\n}';
+    return '#!/bin/bash\n\nPOSTGRES_HOST=localhost\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\nDELIMITER=\'' + delimiter + '\'\nQUOTE=\'' + quote + '\'\nNULL=\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\ncopy() {\n     COMMAND="SET client_encoding = \'${ENCODING}\'; BEGIN; COPY ${1} (${3}) FROM STDIN WITH CSV DELIMITER \'${DELIMITER}\' QUOTE \'${QUOTE}\' ENCODING \'${ENCODING}\' NULL \'${NULL}\'; COMMIT;"\n\n     echo "running $COMMAND"\n\n     psql -h "$POSTGRES_HOST" \\\n          -p "$POSTGRES_PORT" \\\n          -d "$POSGRES_DATABASE" \\\n          -U "$POSTGRES_USER" \\\n          -x \\\n          -v ON_ERROR_STOP=1 \\\n          -c "$COMMAND" \\\n          < $2\n}';
   },
   'docker': function docker(delimiter, quote) {
-    return '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\ncopy() {\n     COMMAND="SET client_encoding = \'${ENCODING}\'; BEGIN; COPY ${1} FROM STDIN WITH CSV DELIMITER \'' + delimiter + '\' QUOTE \'' + quote + '\' ENCODING \'${ENCODING}\' NULL \'\'; COMMIT;"\n\n     echo "running $COMMAND"\n\n     docker run --rm -it \\\n                --link postgres-usda \\\n               -v $(pwd)/data:/data:z \\\n               postgres /bin/bash -c "psql -h postgres-usda -p 5432 -U postgres -d usda -v ON_ERROR_STOP=1 -c \\"$COMMAND\\"  < \\"/data/${2}\\""\n}\n';
+    return '#!/bin/bash\n\nPOSTGRES_HOST=postgres-usda\nPOSTGRES_PORT=5432\nPOSTGRES_USER=postgres\nPOSTGRES_DATABASE=usda\nENCODING=SQL_ASCII\nDELIMITER=\'' + delimiter + '\'\nQUOTE=\'' + quote + '\'\nNULL=\n\n# if nc -h; then\n#      until nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do\n#           echo "$(date) - waiting on postgre..."\n#           sleep 1\n#      done\n# fi\n\ncopy() {\n     SQL_COMMAND="SET client_encoding = \'${ENCODING}\'; BEGIN; COPY ${1} (${3}) FROM STDIN WITH CSV DELIMITER \'${DELIMITER}\' QUOTE \'${QUOTE}\' ENCODING \'${ENCODING}\' NULL \'${NULL}\'; COMMIT;"\n     COMMAND="psql -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER" -d "$POSTGRES_DATABASE" -x -v ON_ERROR_STOP=1 -c \\"$SQL_COMMAND\\"  < \\"/data/${2}\\""\n\n     echo "running $COMMAND"\n\n     docker run --rm -it \\\n                --link "$POSTGRES_HOST" \\\n               -v $(pwd)/data:/data:z \\\n               postgres /bin/bash -c "$COMMAND"\n}\n';
   }
 };
 
@@ -1235,7 +1235,7 @@ function toPostgreSQL(_ref) {
 
   return {
     schema: [(0, _sql.createDatabase)(model.name)].concat(createSchemas(schemas, schemaMap, orderedTables)),
-    imports: createImports(orderedTables, importMethod)
+    imports: createImports(orderedTables, importMethod, schemaMap)
   };
 
   function addTableMap(schema) {
@@ -1282,26 +1282,44 @@ function toPostgreSQL(_ref) {
     _lodash2.default.flatMap(orderedTables, processTable));
   }
 
-  function createImports(orderedTables, importMethod) {
-    var extension = arguments.length <= 2 || arguments[2] === undefined ? '.txt' : arguments[2];
+  function createImports(orderedTables, importMethod, schemaMap) {
+    var extension = arguments.length <= 3 || arguments[3] === undefined ? '.txt' : arguments[3];
 
     return [importMethods[importMethod](delimiter, quote)].concat(orderedTables.map(function (qualifiedTableName) {
-      return copy(tableName(qualifiedTableName), fileName(qualifiedTableName));
+      return copy(tableName(qualifiedTableName), fileName(qualifiedTableName), columns(qualifiedTableName, schemaMap));
     }));
 
-    function copy(table, file) {
-      return 'copy \'' + table + '\' "' + file + '"';
+    function copy(table, file, columns) {
+      return 'copy \'' + table + '\' "' + file + '" \'' + columns + '\'';
+    }
+
+    function columns(qualifiedTableName, schemaMap) {
+      var _qualifiedTableName$s = qualifiedTableName.split('.');
+
+      var _qualifiedTableName$s2 = _slicedToArray(_qualifiedTableName$s, 2);
+
+      var schemaName = _qualifiedTableName$s2[0];
+      var tableName = _qualifiedTableName$s2[1];
+      var schema = schemaMap[schemaName] || { tableMap: [] };
+      var table = schema.tableMap[tableName];
+
+      if (!table) throw new _SemanticError2.default('No "' + schemaName + '"."' + tableName + '"!');
+
+      return table.columns.map(function (_ref5) {
+        var name = _ref5.name;
+        return '\\"' + name + '\\"';
+      }).join(", ");
     }
 
     function tableName(qualifiedTableName) {
       // should support something like: (${columnList}) so that imports can more easily be customized to the column order of the data file
 
-      var _qualifiedTableName$s = qualifiedTableName.split('.');
+      var _qualifiedTableName$s3 = qualifiedTableName.split('.');
 
-      var _qualifiedTableName$s2 = _slicedToArray(_qualifiedTableName$s, 2);
+      var _qualifiedTableName$s4 = _slicedToArray(_qualifiedTableName$s3, 2);
 
-      var schema = _qualifiedTableName$s2[0];
-      var table = _qualifiedTableName$s2[1];
+      var schema = _qualifiedTableName$s4[0];
+      var table = _qualifiedTableName$s4[1];
 
       return '\\"' + schema + '\\".\\"' + table + '\\"';
     }
@@ -1320,12 +1338,12 @@ function toPostgreSQL(_ref) {
   }
 
   function processTable(qualifiedTableName) {
-    var _qualifiedTableName$s3 = qualifiedTableName.split('.');
+    var _qualifiedTableName$s5 = qualifiedTableName.split('.');
 
-    var _qualifiedTableName$s4 = _slicedToArray(_qualifiedTableName$s3, 2);
+    var _qualifiedTableName$s6 = _slicedToArray(_qualifiedTableName$s5, 2);
 
-    var schemaName = _qualifiedTableName$s4[0];
-    var tableName = _qualifiedTableName$s4[1];
+    var schemaName = _qualifiedTableName$s6[0];
+    var tableName = _qualifiedTableName$s6[1];
 
 
     var commands = [];
@@ -1340,12 +1358,12 @@ function toPostgreSQL(_ref) {
 
     var constraints = [];
 
-    if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (_ref5) {
-      var name = _ref5.name;
-      return '"' + name + '"';
-    }) + ')');
-    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (_ref6) {
+    if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (_ref6) {
       var name = _ref6.name;
+      return '"' + name + '"';
+    }).join(', ') + ')');
+    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (_ref7) {
+      var name = _ref7.name;
       return '"' + name + '"';
     }) + ')');
 
@@ -1353,12 +1371,12 @@ function toPostgreSQL(_ref) {
 
     return commands;
 
-    function generateAttribute(_ref7) {
-      var name = _ref7.name;
-      var primaryKey = _ref7.primaryKey;
-      var optional = _ref7.optional;
-      var type = _ref7.type;
-      var check = _ref7.check;
+    function generateAttribute(_ref8) {
+      var name = _ref8.name;
+      var primaryKey = _ref8.primaryKey;
+      var optional = _ref8.optional;
+      var type = _ref8.type;
+      var check = _ref8.check;
 
       var parts = ['"' + name + '"', type ? formatType(type) : 'text'];
 
@@ -1372,7 +1390,7 @@ function toPostgreSQL(_ref) {
           var value = check.value;
 
 
-          if (value.check === 'Number') parts.push('CHECK (' + name + ' ' + operator + ' ' + value.number + ')');else if (value.check === 'Name') {
+          if (value.check === 'Number') parts.push('CHECK ("' + name + '" ' + operator + ' "' + value.number + '")');else if (value.check === 'Name') {
             if (!_lodash2.default.some(attributes, function (attribute) {
               return attribute.name === value.name;
             })) throw new _SemanticError2.default('Cannot check against "' + value.name + '", it is not an attribute of "' + table.name + '"!'); // should also type-check here
@@ -1411,15 +1429,15 @@ function toPostgreSQL(_ref) {
       }
     }
 
-    function generateDependency(_ref8) {
-      var name = _ref8.name;
-      var preArity = _ref8.preArity;
-      var postArity = _ref8.postArity;
-      var _ref8$reference = _ref8.reference;
-      var schema = _ref8$reference.schema;
-      var table = _ref8$reference.table;
-      var attribute = _ref8$reference.attribute;
-      var optional = _ref8.optional;
+    function generateDependency(_ref9) {
+      var name = _ref9.name;
+      var preArity = _ref9.preArity;
+      var postArity = _ref9.postArity;
+      var _ref9$reference = _ref9.reference;
+      var schema = _ref9$reference.schema;
+      var table = _ref9$reference.table;
+      var attribute = _ref9$reference.attribute;
+      var optional = _ref9.optional;
 
       var id = name || (schema === undefined ? '' : (schema || schemaName) + '_') + (table + '_' + (attribute || { name: 'id' }).name),
           references = '"' + (schema || schemaName) + '"."' + table + '"';
@@ -1438,12 +1456,12 @@ function toPostgreSQL(_ref) {
 
 // get primaryKeys() { return _.filter(attributes, a => a.primaryKey); }
 
-var Model = function Model(_ref9) {
+var Model = function Model(_ref10) {
   var _this = this;
 
-  var commonAttributes = _ref9.commonAttributes;
-  var name = _ref9.name;
-  var schemas = _ref9.schemas;
+  var commonAttributes = _ref10.commonAttributes;
+  var name = _ref10.name;
+  var schemas = _ref10.schemas;
 
   _classCallCheck(this, Model);
 
@@ -1454,12 +1472,12 @@ var Model = function Model(_ref9) {
   });
 };
 
-var Schema = function Schema(model, _ref10) {
+var Schema = function Schema(model, _ref11) {
   var _this2 = this;
 
-  var name = _ref10.name;
-  var commonAttributes = _ref10.commonAttributes;
-  var tables = _ref10.tables;
+  var name = _ref11.name;
+  var commonAttributes = _ref11.commonAttributes;
+  var tables = _ref11.tables;
 
   _classCallCheck(this, Schema);
 
@@ -1472,10 +1490,10 @@ var Schema = function Schema(model, _ref10) {
 };
 
 var Table = function () {
-  function Table(schema, _ref11) {
-    var name = _ref11.name;
-    var attributes = _ref11.attributes;
-    var dependencies = _ref11.dependencies;
+  function Table(schema, _ref12) {
+    var name = _ref12.name;
+    var attributes = _ref12.attributes;
+    var dependencies = _ref12.dependencies;
 
     _classCallCheck(this, Table);
 
@@ -1489,6 +1507,30 @@ var Table = function () {
     key: 'model',
     get: function get() {
       return schema.model;
+    }
+  }, {
+    key: 'columns',
+    get: function get() {
+      var schema = this.schema;
+      var tableAttributes = this.attributes;
+      var dependencies = this.dependencies;
+      var schemaAttributes = schema.commonAttributes;
+      var model = schema.model;
+      var modelAttributes = model.commonAttributes;
+      var schemaMap = model.schemaMap;
+
+
+      return _lodash2.default.concat(modelAttributes, schemaAttributes, tableAttributes, _lodash2.default.map(dependencies, function (_ref13) {
+        var name = _ref13.name;
+        var _ref13$reference = _ref13.reference;
+        var schemaName = _ref13$reference.schema;
+        var tableName = _ref13$reference.table;
+        return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
+          {
+            name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
+          }
+        );
+      }));
     }
   }, {
     key: 'primaryKeys',
@@ -1511,11 +1553,11 @@ var Table = function () {
         return a.primaryKey;
       }), _lodash2.default.map(_lodash2.default.filter(dependencies, function (d) {
         return d.primaryKey;
-      }), function (_ref12) {
-        var name = _ref12.name;
-        var _ref12$reference = _ref12.reference;
-        var schemaName = _ref12$reference.schema;
-        var tableName = _ref12$reference.table;
+      }), function (_ref14) {
+        var name = _ref14.name;
+        var _ref14$reference = _ref14.reference;
+        var schemaName = _ref14$reference.schema;
+        var tableName = _ref14$reference.table;
         return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
           {
             name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)
@@ -1543,11 +1585,11 @@ var Table = function () {
         return a.unique;
       }), _lodash2.default.map(_lodash2.default.filter(dependencies, function (d) {
         return d.unique;
-      }), function (_ref13) {
-        var name = _ref13.name;
-        var _ref13$reference = _ref13.reference;
-        var schemaName = _ref13$reference.schema;
-        var tableName = _ref13$reference.table;
+      }), function (_ref15) {
+        var name = _ref15.name;
+        var _ref15$reference = _ref15.reference;
+        var schemaName = _ref15$reference.schema;
+        var tableName = _ref15$reference.table;
         return (//console.log(schemaMap[schemaName || schema.name].tableMap[tableName]) &
           {
             name: name || (schemaName === undefined ? '' : (schemaName || schema.name) + '_') + (tableName + '_' + (schemaMap[schemaName || schema.name].tableMap[tableName].primaryKeys[0] || { name: 'id' }).name)

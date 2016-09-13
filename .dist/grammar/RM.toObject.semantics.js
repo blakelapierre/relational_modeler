@@ -33,7 +33,7 @@ exports.default = {
     type = (0, _util.first)(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
     return Object.assign((0, _util.join)({
       name: name,
-      optional: (0, _util.first)(optional) === '?',
+      optional: !!(0, _util.first)(optional),
       type: type,
       check: (0, _util.first)(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
     }), primaryKeyOrUnique);
@@ -85,7 +85,7 @@ exports.default = {
       preArity: (0, _util.first)(preArity) || '*',
       postArity: (0, _util.first)(postArity) || '*',
       reference: reference,
-      optional: (0, _util.first)(optional) === true,
+      optional: !!(0, _util.first)(optional),
       name: (0, _util.first)(name)
     }), primaryKeyOrUnique);
   },
