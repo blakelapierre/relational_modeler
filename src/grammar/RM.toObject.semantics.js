@@ -28,7 +28,18 @@ export default {
     return join({name, attributes: first(attributes), dependencies});
   },
 
-  Attribute (primaryKeyOrUnique, name, optional, type, check) {
+  Dependency (preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
+    primaryKeyOrUnique = first(primaryKeyOrUnique) || {};
+    return Object.assign(join({
+      preArity: first(preArity) || '*',
+      postArity: first(postArity) || '*',
+      reference,
+      optional: !!first(optional),
+      name: first(name)
+    }), primaryKeyOrUnique);
+  },
+
+  RegularAttribute (primaryKeyOrUnique, name, optional, type, check) {
     primaryKeyOrUnique = first(primaryKeyOrUnique) || {};
     type = first(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
     return Object.assign(join({
@@ -70,17 +81,6 @@ export default {
 
   CheckNumber:
     number => join({check: 'Number', number}),
-
-  Dependency (preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
-    primaryKeyOrUnique = first(primaryKeyOrUnique) || {};
-    return Object.assign(join({
-      preArity: first(preArity) || '*',
-      postArity: first(postArity) || '*',
-      reference,
-      optional: !!first(optional),
-      name: first(name)
-    }), primaryKeyOrUnique);
-  },
 
   SchemaTableName (schema, dot, table) {
     return join({schema, table});

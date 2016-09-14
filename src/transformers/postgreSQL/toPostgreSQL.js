@@ -96,9 +96,10 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
   // This should be broken out into a separate model (module?), but we want the schema map and that is here!
   function resolveDependencies(schemas, schemaMap, orderedTables) {
     schemas.forEach(({name, tables}) =>
-      tables.forEach(({name: tableName, dependencies}) =>
-        dependencies.forEach(({reference}) =>
-          reference.attribute = getTable(schemaMap, reference.schema || name, reference.table).primaryKeys[0])));
+      tables.forEach(({name: tableName, attributes, dependencies}) =>
+        _.concat(_.filter(attributes, ({reference}) => !!reference), dependencies)
+          .forEach(({reference}) =>
+            reference.attribute = getTable(schemaMap, reference.schema || name, reference.table).primaryKeys[0])));
   }
 
   function getTable(schemaMap, schemaName, tableName) {
@@ -165,9 +166,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
           attributes = _.flatMap([modelAttributes, schemaAttributes, table.attributes || []]),
           primaryKeys = table.primaryKeys,
           unique = table.unique,
-          columns = _.map(attributes, generateAttribute)
-                     .concat(_.map(table.dependencies, generateDependency))
-                     .join(', ');
+          columns = _.map(_.concat(attributes, table.dependencies), generateAttribute).join(', ');
 
     const constraints = [];
 
@@ -178,7 +177,11 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
     return commands;
 
-    function generateAttribute({name, primaryKey, optional, type, check}) {
+    function generateAttribute(attribute) {
+      const {name, primaryKey, optional, type, check, reference} = attribute;
+
+      if (reference) return generateDependency(attribute);
+
       const parts = [`"${name}"`, type ? formatType(type) : 'text'];
 
       if (primaryKey && optional) throw new Error(`"${schemaName}"."${tableName}"."${name}" cannot be both a primary key and optional!`); // maybe outlaw this in the grammar?
