@@ -12,7 +12,6 @@ export default
              | Dependency
 
   RegularAttribute = PrimaryKeyOrUnique? name Optional? Type? Constraint?
-  DependencyAttribute = arity? dependency_glyph? arity? PrimaryKeyOrUnique? Reference Optional? RoundContained<ReferenceName>?
 
   PrimaryKeyOrUnique = PrimaryKey
                      | Unique
