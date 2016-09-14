@@ -74,9 +74,13 @@ function toPostgreSQL(_ref) {
       var tables = _ref2.tables;
       return tables.forEach(function (_ref3) {
         var tableName = _ref3.name;
+        var attributes = _ref3.attributes;
         var dependencies = _ref3.dependencies;
-        return dependencies.forEach(function (_ref4) {
+        return _lodash2.default.concat(_lodash2.default.filter(attributes, function (_ref4) {
           var reference = _ref4.reference;
+          return !!reference;
+        }), dependencies).forEach(function (_ref5) {
+          var reference = _ref5.reference;
           return reference.attribute = getTable(schemaMap, reference.schema || name, reference.table).primaryKeys[0];
         });
       });
@@ -127,8 +131,8 @@ function toPostgreSQL(_ref) {
 
       if (!table) throw new _SemanticError2.default('No "' + schemaName + '"."' + tableName + '"!');
 
-      return table.columns.map(function (_ref5) {
-        var name = _ref5.name;
+      return table.columns.map(function (_ref6) {
+        var name = _ref6.name;
         return '\\"' + name + '\\"';
       }).join(", ");
     }
@@ -176,16 +180,16 @@ function toPostgreSQL(_ref) {
     var attributes = _lodash2.default.flatMap([modelAttributes, schemaAttributes, table.attributes || []]);
     var primaryKeys = table.primaryKeys;
     var unique = table.unique;
-    var columns = _lodash2.default.map(attributes, generateAttribute).concat(_lodash2.default.map(table.dependencies, generateDependency)).join(', ');
+    var columns = _lodash2.default.map(_lodash2.default.concat(attributes, table.dependencies), generateAttribute).join(', ');
 
     var constraints = [];
 
-    if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (_ref6) {
-      var name = _ref6.name;
+    if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (_ref7) {
+      var name = _ref7.name;
       return '"' + name + '"';
     }).join(', ') + ')');
-    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (_ref7) {
-      var name = _ref7.name;
+    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (_ref8) {
+      var name = _ref8.name;
       return '"' + name + '"';
     }) + ')');
 
@@ -193,12 +197,16 @@ function toPostgreSQL(_ref) {
 
     return commands;
 
-    function generateAttribute(_ref8) {
-      var name = _ref8.name;
-      var primaryKey = _ref8.primaryKey;
-      var optional = _ref8.optional;
-      var type = _ref8.type;
-      var check = _ref8.check;
+    function generateAttribute(attribute) {
+      var name = attribute.name;
+      var primaryKey = attribute.primaryKey;
+      var optional = attribute.optional;
+      var type = attribute.type;
+      var check = attribute.check;
+      var reference = attribute.reference;
+
+
+      if (reference) return generateDependency(attribute);
 
       var parts = ['"' + name + '"', type ? formatType(type) : 'text'];
 
@@ -287,7 +295,7 @@ var Model = function Model(_ref10) {
 
   _classCallCheck(this, Model);
 
-  this.commonAttributes = commonAttributes;
+  this.commonAttributes = commonAttributes || [];
   this.name = name;
   this.schemas = _lodash2.default.map(schemas, function (schema) {
     return new Schema(_this, schema);
@@ -305,7 +313,7 @@ var Schema = function Schema(model, _ref11) {
 
   this.model = model;
   this.name = name;
-  this.commonAttributes = commonAttributes;
+  this.commonAttributes = commonAttributes || [];
   this.tables = _lodash2.default.map(tables, function (table) {
     return new Table(_this2, table);
   });
@@ -321,7 +329,7 @@ var Table = function () {
 
     this.schema = schema;
     this.name = name;
-    this.attributes = attributes;
+    this.attributes = attributes || [];
     this.dependencies = dependencies;
   }
 

@@ -2,6 +2,7 @@ usda {
  sr28 {
   FOOD_DES {
     @NDB_No text,
+  ->FD_GROUP (FdGrp_Cd),
     Long_Desc,
     Short_Desc,
     ComName?,
@@ -14,7 +15,7 @@ usda {
     Pro_Factor?,
     Fat_Factor?,
     CHO_Factor?
-  } -> FD_GROUP
+  }
 
   FD_GROUP {
     @FdGrp_Cd text,
@@ -37,6 +38,8 @@ usda {
     Nutr_Val numeric(10,3),
     Num_Data_Pts? numeric(5),
     Std_Error? numeric(8,3),
+  ->SRC_CD (Src_Cd),
+  ->DERIV_CD? (Deriv_Cd),
     Ref_NDB_No?,
     Add_Nutr_Mark?,
     Num_Studies? numeric,
@@ -48,8 +51,7 @@ usda {
     Stat_cmt?,
     AddMod_Date?,
     CC?
-  } -> SRC_CD
-    -> DERIV_CD?
+  }
 
   NUTR_DEF {
     @Nutr_No text,
@@ -90,8 +92,9 @@ usda {
 
   DATSRCLN {
     @NDB_No text,
-    @Nutr_No text
-  } -> @DATA_SRC
+    @Nutr_No text,
+  ->@DATA_SRC (DataSrc_ID)
+  }
 
   DATA_SRC {
     @DataSrc_ID text,

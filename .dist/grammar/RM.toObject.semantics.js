@@ -28,7 +28,17 @@ exports.default = {
   Table: function Table(name, attributes, dependencies) {
     return (0, _util.join)({ name: name, attributes: (0, _util.first)(attributes), dependencies: dependencies });
   },
-  Attribute: function Attribute(primaryKeyOrUnique, name, optional, type, check) {
+  Dependency: function Dependency(preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
+    primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
+    return Object.assign((0, _util.join)({
+      preArity: (0, _util.first)(preArity) || '*',
+      postArity: (0, _util.first)(postArity) || '*',
+      reference: reference,
+      optional: !!(0, _util.first)(optional),
+      name: (0, _util.first)(name)
+    }), primaryKeyOrUnique);
+  },
+  RegularAttribute: function RegularAttribute(primaryKeyOrUnique, name, optional, type, check) {
     primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
     type = (0, _util.first)(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
     return Object.assign((0, _util.join)({
@@ -79,16 +89,6 @@ exports.default = {
     return (0, _util.join)({ check: 'Number', number: number });
   },
 
-  Dependency: function Dependency(preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
-    primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
-    return Object.assign((0, _util.join)({
-      preArity: (0, _util.first)(preArity) || '*',
-      postArity: (0, _util.first)(postArity) || '*',
-      reference: reference,
-      optional: !!(0, _util.first)(optional),
-      name: (0, _util.first)(name)
-    }), primaryKeyOrUnique);
-  },
   SchemaTableName: function SchemaTableName(schema, dot, table) {
     return (0, _util.join)({ schema: schema, table: table });
   },
