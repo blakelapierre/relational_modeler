@@ -251,7 +251,7 @@ export default function toPostgreSQL({model, orderedTables}, delimiter = ',', qu
 
 class Model {
   constructor ({commonAttributes, name, schemas}) {
-    this.commonAttributes = commonAttributes;
+    this.commonAttributes = commonAttributes || [];
     this.name = name;
     this.schemas = _.map(schemas, schema => new Schema(this, schema));
   }
@@ -261,7 +261,7 @@ class Schema {
   constructor (model, {name, commonAttributes, tables}) {
     this.model = model;
     this.name = name;
-    this.commonAttributes = commonAttributes;
+    this.commonAttributes = commonAttributes || [];
     this.tables = _.map(tables, table => new Table(this, table));
   }
 }
@@ -270,7 +270,7 @@ class Table {
   constructor (schema, {name, attributes, dependencies}) {
     this.schema = schema;
     this.name = name;
-    this.attributes = attributes;
+    this.attributes = attributes || [];
     this.dependencies = dependencies;
   }
 
