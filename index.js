@@ -923,7 +923,7 @@ function generateModel(text, engineName) {
 Object.defineProperty(exports, "__esModule", {
       value: true
 });
-exports.default = "RM {\n  Model = name AttributeList? Contained<Schema*>\n  Schema = name AttributeList? Contained<Table*>\n\n  Table = name AttributeList? Dependency*\n\n  AttributeList = Contained<ListOf<Attribute, \",\">>\n  Attribute = PrimaryKeyOrUnique? name Optional? Type? Constraint?\n\n  PrimaryKeyOrUnique = PrimaryKey\n                     | Unique\n  PrimaryKey = \"@\"\n  Unique = \"!\"\n  Optional = \"?\"\n\n  Type = List\n       | Set\n\n  List = SquareContained<ListOf<Value, \",\">>\n  Set = Contained<ListOf<Value, \",\">>\n  Value = digit+\n        | CContained<\"'\", name, \"'\">\n\n  Constraint = Operator Check\n  Operator = \">\"\n           | \"<\"\n           | \">=\"\n           | \"<=\"\n           | \"==\"\n           | \"<>\"\n           | \"!=\"\n  Check = CheckName\n        | CheckNumber\n\n  CheckName = name\n  CheckNumber = number\n\n  Dependency = arity? dependency_glyph arity? PrimaryKeyOrUnique? Reference Optional? RoundContained<ReferenceName>?\n\n  Reference = SchemaTableName\n            | TableName\n\n  ReferenceName = name\n\n  SchemaTableName = name \".\" name\n  TableName = name\n\n  Contained<element> = CContained<\"{\", element, \"}\">\n  SquareContained<element> = CContained<\"[\", element, \"]\">\n  RoundContained<element> = CContained<\"(\", element, \")\">\n\n  CContained<open, element, close> = open element close\n\n  name = first_character additional_character*\n  first_character = letter | \"_\"\n  additional_character = first_character | alnum\n\n  arity = \"*\" | \"+\" | number\n  dependency_glyph = \"->\"\n\n  number = digit+\n}\n\nRM_PGSQL <: RM {\n  Type := List\n        | Set\n        | SQLType\n\n  SQLType = \"bigint\"\n          | \"smallint\"\n          | \"integer\"\n          | \"real\"\n          | \"double precision\"\n          | \"smallserial\"\n          | \"serial\"\n          | \"bigserial\"\n          | \"money\"\n          | \"blob\"\n          | \"bytea\"\n          | \"boolean\"\n          | \"text\"\n          | \"timestamp\"\n          | \"date\"\n          | \"time\"\n          | \"interval\"\n          | \"point\"\n          | \"line\"\n          | \"lseq\"\n          | \"box\"\n          | \"path\"\n          | \"polygon\"\n          | \"circle\"\n          | \"cidr\"\n          | \"inet\"\n          | \"macaddr\"\n          | \"json\"\n          | \"jsonb\"\n          | \"int4range\"\n          | \"int8range\"\n          | \"numrange\"\n          | \"tsrange\"\n          | \"tstzrange\"\n          | \"daterange\"\n          | Numeric\n          | VarChar\n\n  Numeric = numeric RoundContained<NumericParameters>?\n  NumericParameters = Precision OptionalScale?\n  Precision = number\n  OptionalScale = \",\" number\n\n  numeric = \"numeric\" | \"decimal\"\n\n  VarChar = \"varchar\" RoundContained<number>?\n}";
+exports.default = "RM {\n  Model = name AttributeList? Contained<Schema*>\n  Schema = name AttributeList? Contained<Table*>\n\n  Table = name AttributeList? Dependency*\n\n  AttributeList = Contained<ListOf<Attribute, \",\">>\n  Dependency = arity? dependency_glyph arity? PrimaryKeyOrUnique? Reference Optional? RoundContained<ReferenceName>?\n\n  Attribute = RegularAttribute\n             | Dependency\n\n  RegularAttribute = PrimaryKeyOrUnique? name Optional? Type? Constraint?\n  DependencyAttribute = arity? dependency_glyph? arity? PrimaryKeyOrUnique? Reference Optional? RoundContained<ReferenceName>?\n\n  PrimaryKeyOrUnique = PrimaryKey\n                     | Unique\n  PrimaryKey = \"@\"\n  Unique = \"!\"\n  Optional = \"?\"\n\n  Type = List\n       | Set\n\n  List = SquareContained<ListOf<Value, \",\">>\n  Set = Contained<ListOf<Value, \",\">>\n  Value = digit+\n        | CContained<\"'\", name, \"'\">\n\n  Constraint = Operator Check\n  Operator = \">\"\n           | \"<\"\n           | \">=\"\n           | \"<=\"\n           | \"==\"\n           | \"<>\"\n           | \"!=\"\n  Check = CheckName\n        | CheckNumber\n\n  CheckName = name\n  CheckNumber = number\n\n  Reference = SchemaTableName\n            | TableName\n\n  ReferenceName = name\n\n  SchemaTableName = name \".\" name\n  TableName = name\n\n  Contained<element> = CContained<\"{\", element, \"}\">\n  SquareContained<element> = CContained<\"[\", element, \"]\">\n  RoundContained<element> = CContained<\"(\", element, \")\">\n\n  CContained<open, element, close> = open element close\n\n  name = first_character additional_character*\n  first_character = letter | \"_\"\n  additional_character = first_character | alnum\n\n  arity = \"*\" | \"+\" | number\n  dependency_glyph = \"->\"\n\n  number = digit+\n}\n\nRM_PGSQL <: RM {\n  Type := List\n        | Set\n        | SQLType\n\n  SQLType = \"bigint\"\n          | \"smallint\"\n          | \"integer\"\n          | \"real\"\n          | \"double precision\"\n          | \"smallserial\"\n          | \"serial\"\n          | \"bigserial\"\n          | \"money\"\n          | \"blob\"\n          | \"bytea\"\n          | \"boolean\"\n          | \"text\"\n          | \"timestamp\"\n          | \"date\"\n          | \"time\"\n          | \"interval\"\n          | \"point\"\n          | \"line\"\n          | \"lseq\"\n          | \"box\"\n          | \"path\"\n          | \"polygon\"\n          | \"circle\"\n          | \"cidr\"\n          | \"inet\"\n          | \"macaddr\"\n          | \"json\"\n          | \"jsonb\"\n          | \"int4range\"\n          | \"int8range\"\n          | \"numrange\"\n          | \"tsrange\"\n          | \"tstzrange\"\n          | \"daterange\"\n          | Numeric\n          | VarChar\n\n  Numeric = numeric RoundContained<NumericParameters>?\n  NumericParameters = Precision OptionalScale?\n  Precision = number\n  OptionalScale = \",\" number\n\n  numeric = \"numeric\" | \"decimal\"\n\n  VarChar = \"varchar\" RoundContained<number>?\n}";
 },{}],9:[function(require,module,exports){
 'use strict';
 
@@ -955,7 +955,17 @@ exports.default = {
   Table: function Table(name, attributes, dependencies) {
     return (0, _util.join)({ name: name, attributes: (0, _util.first)(attributes), dependencies: dependencies });
   },
-  Attribute: function Attribute(primaryKeyOrUnique, name, optional, type, check) {
+  Dependency: function Dependency(preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
+    primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
+    return Object.assign((0, _util.join)({
+      preArity: (0, _util.first)(preArity) || '*',
+      postArity: (0, _util.first)(postArity) || '*',
+      reference: reference,
+      optional: !!(0, _util.first)(optional),
+      name: (0, _util.first)(name)
+    }), primaryKeyOrUnique);
+  },
+  RegularAttribute: function RegularAttribute(primaryKeyOrUnique, name, optional, type, check) {
     primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
     type = (0, _util.first)(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
     return Object.assign((0, _util.join)({
@@ -1006,16 +1016,6 @@ exports.default = {
     return (0, _util.join)({ check: 'Number', number: number });
   },
 
-  Dependency: function Dependency(preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
-    primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
-    return Object.assign((0, _util.join)({
-      preArity: (0, _util.first)(preArity) || '*',
-      postArity: (0, _util.first)(postArity) || '*',
-      reference: reference,
-      optional: !!(0, _util.first)(optional),
-      name: (0, _util.first)(name)
-    }), primaryKeyOrUnique);
-  },
   SchemaTableName: function SchemaTableName(schema, dot, table) {
     return (0, _util.join)({ schema: schema, table: table });
   },
@@ -1252,9 +1252,13 @@ function toPostgreSQL(_ref) {
       var tables = _ref2.tables;
       return tables.forEach(function (_ref3) {
         var tableName = _ref3.name;
+        var attributes = _ref3.attributes;
         var dependencies = _ref3.dependencies;
-        return dependencies.forEach(function (_ref4) {
+        return _lodash2.default.concat(_lodash2.default.filter(attributes, function (_ref4) {
           var reference = _ref4.reference;
+          return !!reference;
+        }), dependencies).forEach(function (_ref5) {
+          var reference = _ref5.reference;
           return reference.attribute = getTable(schemaMap, reference.schema || name, reference.table).primaryKeys[0];
         });
       });
@@ -1305,8 +1309,8 @@ function toPostgreSQL(_ref) {
 
       if (!table) throw new _SemanticError2.default('No "' + schemaName + '"."' + tableName + '"!');
 
-      return table.columns.map(function (_ref5) {
-        var name = _ref5.name;
+      return table.columns.map(function (_ref6) {
+        var name = _ref6.name;
         return '\\"' + name + '\\"';
       }).join(", ");
     }
@@ -1354,16 +1358,16 @@ function toPostgreSQL(_ref) {
     var attributes = _lodash2.default.flatMap([modelAttributes, schemaAttributes, table.attributes || []]);
     var primaryKeys = table.primaryKeys;
     var unique = table.unique;
-    var columns = _lodash2.default.map(attributes, generateAttribute).concat(_lodash2.default.map(table.dependencies, generateDependency)).join(', ');
+    var columns = _lodash2.default.map(_lodash2.default.concat(attributes, table.dependencies), generateAttribute).join(', ');
 
     var constraints = [];
 
-    if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (_ref6) {
-      var name = _ref6.name;
+    if (primaryKeys.length > 0) constraints.push('PRIMARY KEY (' + primaryKeys.map(function (_ref7) {
+      var name = _ref7.name;
       return '"' + name + '"';
     }).join(', ') + ')');
-    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (_ref7) {
-      var name = _ref7.name;
+    if (unique.length > 0) constraints.push('UNIQUE (' + unique.map(function (_ref8) {
+      var name = _ref8.name;
       return '"' + name + '"';
     }) + ')');
 
@@ -1371,12 +1375,16 @@ function toPostgreSQL(_ref) {
 
     return commands;
 
-    function generateAttribute(_ref8) {
-      var name = _ref8.name;
-      var primaryKey = _ref8.primaryKey;
-      var optional = _ref8.optional;
-      var type = _ref8.type;
-      var check = _ref8.check;
+    function generateAttribute(attribute) {
+      var name = attribute.name;
+      var primaryKey = attribute.primaryKey;
+      var optional = attribute.optional;
+      var type = attribute.type;
+      var check = attribute.check;
+      var reference = attribute.reference;
+
+
+      if (reference) return generateDependency(attribute);
 
       var parts = ['"' + name + '"', type ? formatType(type) : 'text'];
 
@@ -1465,7 +1473,7 @@ var Model = function Model(_ref10) {
 
   _classCallCheck(this, Model);
 
-  this.commonAttributes = commonAttributes;
+  this.commonAttributes = commonAttributes || [];
   this.name = name;
   this.schemas = _lodash2.default.map(schemas, function (schema) {
     return new Schema(_this, schema);
@@ -1483,7 +1491,7 @@ var Schema = function Schema(model, _ref11) {
 
   this.model = model;
   this.name = name;
-  this.commonAttributes = commonAttributes;
+  this.commonAttributes = commonAttributes || [];
   this.tables = _lodash2.default.map(tables, function (table) {
     return new Table(_this2, table);
   });
@@ -1499,7 +1507,7 @@ var Table = function () {
 
     this.schema = schema;
     this.name = name;
-    this.attributes = attributes;
+    this.attributes = attributes || [];
     this.dependencies = dependencies;
   }
 
@@ -1612,10 +1620,10 @@ var delimiter = '^',
 
 var samples = {
   'example': 'database_name {\n  schema_name {\n    table_name {\n      @primaryKey,\n      attribute\n    } -> foreign_table\n\n    foreign_table {\n      @primaryKey,\n      attribute? boolean\n    }\n  }\n}',
-  'experiments': 'experiments { @id, inserted_at timestamp } {\n  binary {\n    coin_flip {\n      outcome { \'H\', \'T\' }\n    }\n  }\n}',
+  'experiments': 'experiments { @id, inserted_at timestamp } {\n  binary {\n    coin_flip {\n      outcome { \'H\', \'T\' }\n    }\n  }\n\n  cats_on_pants {\n    cat { name }\n    cat_position { position { \'pants1\', \'pants2\', \'both\', \'neither\' } } -> cat\n  }\n}',
   'accounting': 'dist {@id, inserted_at timestamp} {\n  accounts {\n    account {key}\n    account_feature -> account -> features.feature\n  }\n\n  features {\n    feature {description} -> feature (parent_feature)\n    feature_cost {cost numeric} -> feature\n    feature_schedule {global_unlock_value numeric} -> feature\n    feature_progress {contributed_value numeric} -> feature\n  }\n\n  transactions {\n    transaction -> accounts.account\n    transaction_detail {amount numeric} -> transaction\n    transaction_account_feature -> accounts.account_feature -> transaction_detail\n  }\n}',
   'company': 'company {@id, inserted_at timestamp} {\n  personnel {\n    employee {name}\n\n    employee_engagement {start timestamp, end? timestamp > start, salary money} -> employee\n  }\n\n  payroll {\n    payment {amount money}\n\n    employee_payment {occurred timestamp} -> personnel.employee_engagement -> payment\n  }\n\n  operations {\n    task {name, description} -> task? (parent_task)\n\n    task_assignment {ended? timestamp} -> !task -> !personnel.employee\n    task_update {update text} -> task_assignment\n  }\n}',
-  'usda_sr28': 'usda {\n sr28 {\n  FOOD_DES {\n    @NDB_No text,\n    Long_Desc,\n    Short_Desc,\n    ComName?,\n    ManufacName?,\n    Survey?,\n    Ref_desc?,\n    Refuse?,\n    SciName?,\n    N_Factor?,\n    Pro_Factor?,\n    Fat_Factor?,\n    CHO_Factor?\n  } -> FD_GROUP\n\n  FD_GROUP {\n    @FdGrp_Cd text,\n    FdGrp_Desc\n  }\n\n  LANGUAL {\n    @NDB_No text,\n    @Factor_Code text\n  }\n\n  LANGDESC {\n    @Factor_Code text,\n    Description\n  }\n\n  NUT_DATA {\n    @NDB_No text,\n    @Nutr_No text,\n    Nutr_Val numeric(10,3),\n    Num_Data_Pts? numeric(5),\n    Std_Error? numeric(8,3),\n    Ref_NDB_No?,\n    Add_Nutr_Mark?,\n    Num_Studies? numeric,\n    Min? numeric(10,3),\n    Max? numeric(10,3),\n    DF? numeric(4),\n    Low_EB? numeric(10,3),\n    Up_EB? numeric(10,3),\n    Stat_cmt?,\n    AddMod_Date?,\n    CC?\n  } -> SRC_CD\n    -> DERIV_CD?\n\n  NUTR_DEF {\n    @Nutr_No text,\n    Units,\n    Tagname?,\n    NutrDesc,\n    Num_Dec,\n    SR_Order numeric(6)\n  }\n\n  SRC_CD {\n    @Src_Cd text,\n    SrcCd_Desc\n  }\n\n  DERIV_CD {\n    @Deriv_Cd text,\n    Deriv_Desc\n  }\n\n  WEIGHT {\n    @NDB_No text,\n    @Seq text,\n    Amount numeric,\n    Msre_Desc,\n    Gm_Wgt numeric(7,1),\n    Num_Data_Pts? numeric(4),\n    Std_Dev? numeric(7,3)\n  }\n\n  FOOTNOTE {\n    NDB_No,\n    Footnt_No,\n    Footnt_Typ,\n    Nutr_No?,\n    Footnt_Txt\n  }\n\n  DATSRCLN {\n    @NDB_No text,\n    @Nutr_No text\n  } -> @DATA_SRC\n\n  DATA_SRC {\n    @DataSrc_ID text,\n    Authors?,\n    Title,\n    Year?,\n    Journal?,\n    Vol_City?,\n    Issue_State?,\n    Start_Page?,\n    End_Page?\n  }\n }\n}'
+  'usda_sr28': 'usda {\n sr28 {\n  FOOD_DES {\n    @NDB_No text,\n  ->FD_GROUP (FdGrp_Cd),\n    Long_Desc,\n    Short_Desc,\n    ComName?,\n    ManufacName?,\n    Survey?,\n    Ref_desc?,\n    Refuse?,\n    SciName?,\n    N_Factor?,\n    Pro_Factor?,\n    Fat_Factor?,\n    CHO_Factor?\n  }\n\n  FD_GROUP {\n    @FdGrp_Cd text,\n    FdGrp_Desc\n  }\n\n  LANGUAL {\n    @NDB_No text,\n    @Factor_Code text\n  }\n\n  LANGDESC {\n    @Factor_Code text,\n    Description\n  }\n\n  NUT_DATA {\n    @NDB_No text,\n    @Nutr_No text,\n    Nutr_Val numeric(10,3),\n    Num_Data_Pts? numeric(5),\n    Std_Error? numeric(8,3),\n  ->SRC_CD (Src_Cd),\n  ->DERIV_CD? (Deriv_Cd),\n    Ref_NDB_No?,\n    Add_Nutr_Mark?,\n    Num_Studies? numeric,\n    Min? numeric(10,3),\n    Max? numeric(10,3),\n    DF? numeric(4),\n    Low_EB? numeric(10,3),\n    Up_EB? numeric(10,3),\n    Stat_cmt?,\n    AddMod_Date?,\n    CC?\n  }\n\n  NUTR_DEF {\n    @Nutr_No text,\n    Units,\n    Tagname?,\n    NutrDesc,\n    Num_Dec,\n    SR_Order numeric(6)\n  }\n\n  SRC_CD {\n    @Src_Cd text,\n    SrcCd_Desc\n  }\n\n  DERIV_CD {\n    @Deriv_Cd text,\n    Deriv_Desc\n  }\n\n  WEIGHT {\n    @NDB_No text,\n    @Seq text,\n    Amount numeric,\n    Msre_Desc,\n    Gm_Wgt numeric(7,1),\n    Num_Data_Pts? numeric(4),\n    Std_Dev? numeric(7,3)\n  }\n\n  FOOTNOTE {\n    NDB_No,\n    Footnt_No,\n    Footnt_Typ,\n    Nutr_No?,\n    Footnt_Txt\n  }\n\n  DATSRCLN {\n    @NDB_No text,\n    @Nutr_No text,\n  ->@DATA_SRC (DataSrc_ID)\n  }\n\n  DATA_SRC {\n    @DataSrc_ID text,\n    Authors?,\n    Title,\n    Year?,\n    Journal?,\n    Vol_City?,\n    Issue_State?,\n    Start_Page?,\n    End_Page?\n  }\n }\n}'
 };
 
 document.addEventListener('DOMContentLoaded', function () {
