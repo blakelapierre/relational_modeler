@@ -13,21 +13,27 @@ exports.default = {
   ListOf_some: function ListOf_some(element, separator, rest) {
     return (0, _util.prepend)(element, rest);
   },
+
   ListOf_none: function ListOf_none() {
     return undefined;
   },
+
   CContained: function CContained(open, element, close) {
     return (0, _util.single)(element);
   },
+
   Model: function Model(name, commonAttributes, schemas) {
     return (0, _util.join)({ name: name, commonAttributes: (0, _util.first)(commonAttributes) || [], schemas: schemas });
   },
+
   Schema: function Schema(name, commonAttributes, tables) {
     return (0, _util.join)({ name: name, commonAttributes: (0, _util.first)(commonAttributes) || [], tables: tables });
   },
+
   Table: function Table(name, attributes, dependencies) {
     return (0, _util.join)({ name: name, attributes: (0, _util.first)(attributes), dependencies: dependencies });
   },
+
   Dependency: function Dependency(preArity, glyph, postArity, primaryKeyOrUnique, reference, optional, name) {
     primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
     return Object.assign((0, _util.join)({
@@ -38,6 +44,7 @@ exports.default = {
       name: (0, _util.first)(name)
     }), primaryKeyOrUnique);
   },
+
   RegularAttribute: function RegularAttribute(primaryKeyOrUnique, name, optional, type, check) {
     primaryKeyOrUnique = (0, _util.first)(primaryKeyOrUnique) || {};
     type = (0, _util.first)(type) || (primaryKeyOrUnique.primaryKey ? defaultPrimaryKeyType : defaultType);
@@ -48,7 +55,6 @@ exports.default = {
       check: (0, _util.first)(check) // using first() here is a little bit of a hack; I want check to be undefined if there is none specified, without calling first() it is an empty array
     }), primaryKeyOrUnique);
   },
-
 
   PrimaryKey: function PrimaryKey(primaryKey) {
     return (0, _util.join)({ primaryKey: (0, _util.first)(primaryKey) === '@' });
@@ -62,24 +68,21 @@ exports.default = {
     return (0, _util.first)(optional) === '?';
   },
 
-  Type: function Type(type) {
-    return (0, _util.single)(type);
-  },
+  Type: _util.single,
+
   List: function List(values) {
     return (0, _util.join)({ type: 'List', values: values });
   },
+
   Set: function Set(values) {
     return (0, _util.join)({ type: 'Set', values: values });
   },
-
 
   Constraint: function Constraint(operator, value) {
     return (0, _util.join)({ operator: operator, value: value });
   },
 
-  Operator: function Operator(symbol) {
-    return (0, _util.single)(symbol);
-  },
+  Operator: _util.single,
 
   CheckName: function CheckName(name) {
     return (0, _util.join)({ check: 'Name', name: name });
@@ -92,9 +95,12 @@ exports.default = {
   SchemaTableName: function SchemaTableName(schema, dot, table) {
     return (0, _util.join)({ schema: schema, table: table });
   },
+
   TableName: function TableName(table) {
     return (0, _util.join)({ table: table });
   },
+
+  // Cannot use => syntax here as `this` must be preserved
   name: function name(first_character, additional_characters) {
     return this.interval.contents;
   }
