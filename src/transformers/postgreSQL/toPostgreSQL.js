@@ -67,8 +67,8 @@ copy() {
 
      docker run --rm -it \\
                 --link "$POSTGRES_HOST" \\
-               -v $(pwd)/data:/data:z \\
-               postgres /bin/bash -c "$COMMAND"
+                -v $(pwd)/data:/data:z \\
+                postgres /bin/bash -c "$COMMAND"
 }
 `
 };
