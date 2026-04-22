@@ -9,6 +9,28 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
+  "funding": {
+    "type": "cashapp",
+    "url": "cashapp:$blapierre1"
+  },{
+    "type": "bitcoin-coinbase",
+    "url": "bitcoin:35thwbdC7MaA67jQzMB8a5iCyMG86PgVgM"
+  },{
+    "type": "bitcoincash-coinbase",
+    "url": "bitcoincash:35thwbdC7MaA67jQzMB8a5iCyMG86PgVgM"
+  },{
+    "type": "ethereum",
+    "url": "ethereum:0x13CEb7d4Fa25AC4dBE2DE4C167ff3dC6e4330D94"
+  },{
+    "type": "base-usdc",
+    "url": "baseusdc:0x9465085Aa7487910Ee30d4fF159B0A83270E0Bd0"
+  },{
+    "type": "bank-account",
+    "url": "routing:121202211,account:440054826688"
+  },{
+    "type": "brokerage",
+    "url": "routing:071000013,acccount:59385380093713209"
+  },
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.2.1",
