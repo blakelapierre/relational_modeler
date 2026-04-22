@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "funding": {
+  "funding": [{
     "type": "cashapp",
     "url": "cashapp:$blapierre1"
   },{
@@ -30,7 +30,7 @@
   },{
     "type": "brokerage",
     "url": "routing:071000013,acccount:59385380093713209"
-  },
+  }],
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.2.1",
